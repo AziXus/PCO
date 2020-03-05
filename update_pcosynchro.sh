@@ -10,7 +10,7 @@ install_pcosynchro() {
     rm -rf $PCOSYNCHRO_CLONE_DIR
     git clone https://gitlab.com/reds-public/pco-synchro.git $PCOSYNCHRO_CLONE_DIR
     cd $PCOSYNCHRO_CLONE_DIR/lib/pcosynchro/
-    /opt/Qt/5.12.7/gcc_64/bin/qmake
+    qmake
     make -j4
     make install
     #cp *.a /usr/local/lib/
