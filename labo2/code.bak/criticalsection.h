@@ -57,7 +57,7 @@ public:
 
 private:
     std::vector<unsigned int> tickets;
-    std::vector<unsigned char> entering; //std::vector specialization for bool causes issues
+    std::vector<unsigned char> choosing; //std::vector specialization for bool causes issues
 };
 
 #endif // CRITICALSECTION_H

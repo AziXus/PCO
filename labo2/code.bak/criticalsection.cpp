@@ -1,21 +1,23 @@
 #include "criticalsection.h"
+#include <atomic>
 #include <thread>
 #include <algorithm>
 
 void WonderfulCriticalSection::initialize(unsigned int nbThreads)
 {
     tickets.resize(nbThreads, 0);
-    entering.resize(nbThreads, 0);
+    choosing.resize(nbThreads, false);
 }
 
 void WonderfulCriticalSection::lock(unsigned int index)
 {
-    entering[index] = 1;
+    choosing[index] = true;
     tickets[index] = 1 + *std::max_element(tickets.begin(), tickets.end());
-    entering[index] = 0;
+    choosing[index] = false;
+    std::atomic_thread_fence(std::memory_order_acq_rel);
 
-    for (unsigned int other = 0; other < entering.size(); ++other) {
-        while (entering[other]) {
+    for (unsigned int other = 0; other < choosing.size(); ++other) {
+        while (choosing[other]) {
             std::this_thread::yield();
         }
 
@@ -26,7 +28,7 @@ void WonderfulCriticalSection::lock(unsigned int index)
     }
 }
 
-void WonderfulCriticalSection::unlock(unsigned int index)
+void WonderfulCriticalSection::unlock(unsigned int thread)
 {
-    tickets[index] = 0;
+    tickets[thread] = 0;
 }
