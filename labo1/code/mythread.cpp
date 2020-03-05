@@ -1,6 +1,8 @@
 #include "mythread.h"
+#include <pcosynchro/pcomutex.h>
 
 static volatile long unsigned int counter;
+static PcoMutex mutex;
 
 void runTask(unsigned long nbIterations)
 {
@@ -8,7 +10,11 @@ void runTask(unsigned long nbIterations)
 
     while (i < nbIterations)
     {
+
+        mutex.lock();
         counter++;
+        mutex.unlock();
+
         i++;
     }
 }
