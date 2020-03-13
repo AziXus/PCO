@@ -1,7 +1,8 @@
 #include <QCryptographicHash>
 #include <QVector>
-
+#include <pcosynchro/pcothread.h>
 #include "threadmanager.h"
+#include "mythread.h"
 
 /*
  * std::pow pour les long long unsigned int
@@ -33,6 +34,19 @@ void ThreadManager::incrementPercentComputed(double percentComputed)
     emit sig_incrementPercentComputed(percentComputed);
 }
 
+QVector<unsigned int> getPasswordState(long long unsigned int v, long long unsigned int nbChars, long long unsigned int nbValidChars) {
+    QVector<unsigned int> state(nbChars, 0);
+
+    unsigned int i = 0;
+    while (v != 0) {
+        state[i] = v % nbValidChars;
+        v /= nbValidChars;
+        ++i;
+    }
+
+    return state;
+}
+
 /*
  * Les paramètres sont les suivants:
  *
@@ -53,114 +67,40 @@ QString ThreadManager::startHacking(
         unsigned int nbThreads
 )
 {
-    unsigned int i;
-
+    std::vector<std::unique_ptr<PcoThread>> threadList;
     long long unsigned int nbToCompute;
-    long long unsigned int nbComputed;
 
-    /*
-     * Nombre de caractères différents pouvant composer le mot de passe
-     */
-    unsigned int nbValidChars;
-
-    /*
-     * Mot de passe à tester courant
-     */
-    QString currentPasswordString;
-
-    /*
-     * Tableau contenant les index dans la chaine charset des caractères de
-     * currentPasswordString
-     */
-    QVector<unsigned int> currentPasswordArray;
-
-    /*
-     * Hash du mot de passe à tester courant
-     */
-    QString currentHash;
-
-    /*
-     * Object QCryptographicHash servant à générer des md5
-     */
-    QCryptographicHash md5(QCryptographicHash::Md5);
+    init(charset, salt, hash, nbChars);
 
     /*
      * Calcul du nombre de hash à générer
      */
-    nbToCompute        = intPow(charset.length(),nbChars);
-    nbComputed         = 0;
+    nbToCompute = intPow(charset.length(), nbChars);
 
-    /*
-     * Nombre de caractères différents pouvant composer le mot de passe
-     */
-    nbValidChars       = charset.length();
+    /* Crée les threads, on ajoutant leur pointeur à la liste.
+       Les threads sont immédiatement lancés par le constructeur. */
+    for (long unsigned int i=0; i<nbThreads; i++)
+    {
+        unsigned long long start = nbToCompute / nbThreads * i;
+        QVector<unsigned int> initialPassword = getPasswordState(start, nbChars, charset.length());
 
-    /*
-     * On initialise le premier mot de passe à tester courant en le remplissant
-     * de nbChars fois du premier caractère de charset
-     */
-    currentPasswordString.fill(charset.at(0),nbChars);
-    currentPasswordArray.fill(0,nbChars);
-
-    /*
-     * Tant qu'on a pas tout essayé...
-     */
-    while (nbComputed < nbToCompute) {
-        /* On vide les données déjà ajoutées au générateur */
-        md5.reset();
-        /* On préfixe le mot de passe avec le sel */
-        md5.addData(salt.toLatin1());
-        md5.addData(currentPasswordString.toLatin1());
-        /* On calcul le hash */
-        currentHash = md5.result().toHex();
-
-        /*
-         * Si on a trouvé, on retourne le mot de passe courant (sans le sel)
-         */
-        if (currentHash == hash)
-            return currentPasswordString;
-
-        /*
-         * Tous les 1000 hash calculés, on notifie qui veut bien entendre
-         * de l'état de notre avancement (pour la barre de progression)
-         */
-        if ((nbComputed % 1000) == 0) {
-            incrementPercentComputed((double)1000/nbToCompute);
-        }
-
-        /*
-         * On récupère le mot de pass à tester suivant.
-         *
-         * L'opération se résume à incrémenter currentPasswordArray comme si
-         * chaque élément de ce vecteur représentait un digit d'un nombre en
-         * base nbValidChars.
-         *
-         * Le digit de poids faible étant en position 0
-         */
-        i = 0;
-
-        while (i < (unsigned int)currentPasswordArray.size()) {
-            currentPasswordArray[i]++;
-
-            if (currentPasswordArray[i] >= nbValidChars) {
-                currentPasswordArray[i] = 0;
-                i++;
-            } else
-                break;
-        }
-
-        /*
-         * On traduit les index présents dans currentPasswordArray en
-         * caractères
-         */
-        for (i=0;i<nbChars;i++)
-            currentPasswordString[i]  = charset.at(currentPasswordArray.at(i));
-
-        nbComputed++;
+        PcoThread *currentThread = new PcoThread(crack, initialPassword, nbToCompute / nbThreads, (double)1000 / nbToCompute, this);
+        threadList.push_back(std::unique_ptr<PcoThread>(currentThread));
     }
+
+    /* Attends la fin de chaque thread et libère la mémoire associée.
+     * Durant l'attente, l'application est bloquée.
+     */
+    for (long unsigned int i=0; i<nbThreads; i++)
+    {
+        threadList[i]->join();
+    }
+    /* Vide la liste de pointeurs de threads */
+    threadList.clear();
+
     /*
      * Si on arrive ici, cela signifie que tous les mot de passe possibles ont
      * été testés, et qu'aucun n'est la préimage de ce hash.
      */
-    return QString("");
+    return getPassword();
 }
