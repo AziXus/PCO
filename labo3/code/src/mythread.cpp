@@ -112,4 +112,3 @@ void crack(QVector<unsigned int> currentPasswordArray, long long unsigned int nb
         nbComputed++;
     }
 }
-
