@@ -11,8 +11,6 @@ Le logiciel fonctionne en donnant la taille du mot de passe ainsi que le sel et 
 
 ## Choix d'implémentation
 
-Nous avons dans un premier temps implémenter une première version avec comme optique de faire que chaque threads effectue l'un après l'autre le test de hash. Avec ce choix, nous avons du mettre en place un mutex sur une grande zone de code(expliqué la zone de code).
-
 
 Comment avez-vous abordé le problème, quels choix avez-vous fait, quelle
 décomposition avez-vous choisie, quelles variables ont dû être protégées, ...
