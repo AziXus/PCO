@@ -69,6 +69,10 @@ QString ThreadManager::startHacking(
 {
     std::vector<std::unique_ptr<PcoThread>> threadList;
     long long unsigned int nbToCompute;
+    unsigned long long start;
+    QVector<unsigned int> initialPassword;
+    long long unsigned int nbToComputePerThread;
+    double percentageIncrement;
 
     init(charset, salt, hash, nbChars);
 
@@ -76,15 +80,19 @@ QString ThreadManager::startHacking(
      * Calcul du nombre de hash à générer
      */
     nbToCompute = intPow(charset.length(), nbChars);
+    initialPassword.fill(0, nbChars);
+
+    nbToComputePerThread = nbToCompute / nbThreads;
+    percentageIncrement = (double)1000 / nbToCompute;
 
     /* Crée les threads, on ajoutant leur pointeur à la liste.
        Les threads sont immédiatement lancés par le constructeur. */
     for (long unsigned int i=0; i<nbThreads; i++)
     {
-        unsigned long long start = nbToCompute / nbThreads * i;
-        QVector<unsigned int> initialPassword = getPasswordState(start, nbChars, charset.length());
+        start = nbToCompute / nbThreads * i;
+        initialPassword = getPasswordState(start, nbChars, charset.length());
 
-        PcoThread *currentThread = new PcoThread(crack, initialPassword, nbToCompute / nbThreads, (double)1000 / nbToCompute, this);
+        PcoThread *currentThread = new PcoThread(crack, initialPassword, nbToComputePerThread, percentageIncrement, this);
         threadList.push_back(std::unique_ptr<PcoThread>(currentThread));
     }
 
