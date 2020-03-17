@@ -1,3 +1,21 @@
 rendu.tar.gz
 rapport.pdf
-build-*/*
+*build-*
+# A listing of all the files included in the project
+*.files
+
+# Include directories
+*.includes
+
+# Project configuration settings like predefined Macros
+*.config
+
+# Qt Creator settings
+*.creator
+
+# User project settings
+*.creator.user*
+
+# Qt Creator backups
+*.autosave
+

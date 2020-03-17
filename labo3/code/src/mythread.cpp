@@ -11,22 +11,23 @@
 #include <pcosynchro/pcomutex.h>
 #include "threadmanager.h"
 
-static QString CHARSET;
-static QString SALT;
-static QString HASH;
-static QString password;
-static unsigned int NB_CHARS;
+/* Use _ because element is static */
+static QString _charset;
+static QString _salt;
+static QString _hash;
+static QString _password;
+static unsigned int _nbChars;
 
 QString getPassword() {
-    return password;
+    return _password;
 }
 
 void init(const QString& charset, const QString& salt, const QString& hash, unsigned int nbChars) {
-    CHARSET = charset;
-    SALT = salt;
-    HASH = hash;
-    NB_CHARS = nbChars;
-    password = "";
+    _charset = charset;
+    _salt = salt;
+    _hash = hash;
+    _nbChars = nbChars;
+    _password = "";
 }
 
 void crack(QVector<unsigned int> currentPasswordArray, long long unsigned int nbToCompute, double increment, ThreadManager* tm) {
@@ -56,23 +57,23 @@ void crack(QVector<unsigned int> currentPasswordArray, long long unsigned int nb
     /*
      * Nombre de caractères différents pouvant composer le mot de passe
      */
-    nbValidChars       = CHARSET.length();
+    nbValidChars       = _charset.length();
     nbComputed         = 0;
 
-    currentPasswordString.fill(CHARSET.at(0),NB_CHARS);
+    currentPasswordString.fill(_charset.at(0),_nbChars);
 
     while (nbComputed < nbToCompute) {
         /*
          * On traduit les index présents dans currentPasswordArray en
          * caractères
          */
-        for (i=0;i<NB_CHARS;i++)
-            currentPasswordString[i]  = CHARSET.at(currentPasswordArray.at(i));
+        for (i=0;i<_nbChars;i++)
+            currentPasswordString[i]  = _charset.at(currentPasswordArray.at(i));
 
         /* On vide les données déjà ajoutées au générateur */
         md5.reset();
         /* On préfixe le mot de passe avec le sel */
-        md5.addData(SALT.toLatin1());
+        md5.addData(_salt.toLatin1());
         md5.addData(currentPasswordString.toLatin1());
         /* On calcul le hash */
         currentHash = md5.result().toHex();
@@ -80,10 +81,10 @@ void crack(QVector<unsigned int> currentPasswordArray, long long unsigned int nb
         /*
          * Si on a trouvé, on retourne le mot de passe courant (sans le sel)
          */
-        if (currentHash == HASH)
-            password = currentPasswordString;
+        if (currentHash == _hash)
+            _password = currentPasswordString;
 
-        if (password != "")
+        if (_password != "")
             return;
 
         /*
