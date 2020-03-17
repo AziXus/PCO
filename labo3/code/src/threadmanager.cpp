@@ -1,3 +1,10 @@
+/**
+  \file threadmanager.cpp
+  \author Yann Thoma
+  \modified Müller Robin, Teixeira Carvalho Stéphane
+  \date 19.03.2020
+  \brief Classe pour reverser un hash md5 par brute force.
+*/
 #include <QCryptographicHash>
 #include <QVector>
 #include <pcosynchro/pcothread.h>
@@ -25,7 +32,7 @@ long long unsigned int intPow (
 }
 
 ThreadManager::ThreadManager(QObject *parent) :
-    QObject(parent)
+        QObject(parent)
 {}
 
 
@@ -34,13 +41,22 @@ void ThreadManager::incrementPercentComputed(double percentComputed)
     emit sig_incrementPercentComputed(percentComputed);
 }
 
-QVector<unsigned int> getPasswordState(long long unsigned int v, long long unsigned int nbChars, long long unsigned int nbValidChars) {
+/**
+ * Cette fonction permet de trouver l'état du mot de passe après un certain nombre d'itération
+ * @param iteration long long unsigned int indiquant l'itération du mot de passse voulu
+ * @param nbChars le nombre de caractère du mot de passe à bruteforcer
+ * @param nbValidChars nombre de caractère valides pour le mot de passe (nombre de charset)
+ * @return un vecteur de int étant l'état du mot de passe après x itération
+ */
+QVector<unsigned int> getPasswordState(long long unsigned int iteration, long long unsigned int nbChars, long long unsigned int nbValidChars) {
+    //Initisalisation du vecteur allant contenir l'état du mot de passe
     QVector<unsigned int> state(nbChars, 0);
 
     unsigned int i = 0;
-    while (v != 0) {
-        state[i] = v % nbValidChars;
-        v /= nbValidChars;
+    //Effectue une conversion de base 10 vers la base de nbValidChars
+    while (iteration != 0) {
+        state[i] = iteration % nbValidChars;
+        iteration /= nbValidChars;
         ++i;
     }
 
@@ -81,7 +97,9 @@ QString ThreadManager::startHacking(
        Les threads sont immédiatement lancés par le constructeur. */
     for (long unsigned int i=0; i<nbThreads; i++)
     {
+        //Calcul de l'itération ou doit commencer le thread que nous allons créer
         unsigned long long start = nbToCompute / nbThreads * i;
+        //Trouve l'état du mot de passe à l'itération trouvée aupravant
         QVector<unsigned int> initialPassword = getPasswordState(start, nbChars, charset.length());
 
         PcoThread *currentThread = new PcoThread(crack, initialPassword, nbToCompute / nbThreads, (double)1000 / nbToCompute, this);

@@ -1,3 +1,9 @@
+/**
+  \file mythread.h
+  \author Müller Robin, Teixeira Carvalho Stéphane
+  \date 19.03.2020
+  \brief Classe pour permettre de définir ce qu'un thread doit effectuer lors d'un crackage de mot de passe
+**/
 #include "mythread.h"
 #include <QCryptographicHash>
 #include <QVector>
