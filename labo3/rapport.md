@@ -26,7 +26,7 @@ Afin de déterminer cela, nous nous sommes rendu compte que c'était simplement 
 
 Notre solution augmente la vitesse d'un facteur `n`, n étant le nombre de threads, si l'on ne trouve pas le mot de passe et que les threads vont à la même vitesse.
 
-Nous avons remarqué que si l'on essaie de cracker le même hash avec un nombre de threads différents, il est possible que le temps augmente ou diminue. Cette variation est causée par la séparation de l'espace de crackage. Exemple...........
+Nous avons remarqué que si l'on essaie de cracker le même hash avec un nombre de threads différents, il est possible que le temps augmente ou diminue. Cette variation est causée par la séparation de l'espace de crackage. On peut voir ce résultat dans les tests du point 2.
 
 ## Tests effectués
 Nous avons utilisé le mot de passe `test`, sans sel, qui correspond au hash suivant : `098f6bcd4621d373cade4e832627b4f6`.
