@@ -45,7 +45,7 @@ Nous avons utilisé le mot de passe `test`, sans sel, qui correspond au hash sui
 
   1. Nous augmentons ici le nombre de thread à 8
 
-    Résultat : Nous avons ici le problème que nous avions cité auparvant ou il est possible que le temps de crackge soit plus élévé avec plus de thread. Ici le mot de passe doit se situé vers la millieu de test d'un des threads.
+    Résultat : Nous avons ici le problème que nous avions cité auparavant ou il est possible que le temps de crackge soit plus élévé avec plus de thread. Ici le mot de passe doit se situé vers la millieu de test d'un des threads.
 
     ![](img/R2_2.png)
 
