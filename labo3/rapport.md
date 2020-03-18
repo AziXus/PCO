@@ -1,4 +1,4 @@
-# Titre du laboratoire
+# Labo 3 : Cracking md5
 
 Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 
