@@ -22,7 +22,7 @@ Nous avons initialement implémenter une première version avec comme optique de
 Nous avons donc changé d'optique et nous nous sommmes concentrés sur de la parallélisation plutôt que d'avoir une section critique. Pour cela, nous avons décidé de séparer l'espace de crackage de chaque thread. Si nous avons 1000 différentes possibilitées de mot de passe ainsi que 5 threads, la thread 1 crackera les mots de passe aux indexes 0 à 199, puis 200 à 399, etc...
 
 Le problème de cette optique est de trouver en un temps raisonnable l'état du mot passe à un certain index.
-Afin de déterminer cela, nous nous sommes rendu compte que c'était simplement un problème de conversion de base, de la base 10 à la base nbValidChars. nbValidChars correspond aux nombres de caractères du charset, qui est 66 (abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!$~\*).
+Afin de déterminer cela, nous nous sommes rendu compte que c'était simplement un problème de conversion de base, de la base 10 à la base nbValidChars. nbValidChars correspond aux nombres de caractères du charset, qui est 66 (abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!$~\*). La complexité de l'algorithme est log<sub>nbValidChars</sub>(n).
 
 Notre solution augmente la vitesse d'un facteur `n`, n étant le nombre de threads, si l'on ne trouve pas le mot de passe et que les threads vont à la même vitesse.
 
@@ -71,6 +71,6 @@ Nous avons utilisé le mot de passe `test`, sans sel, qui correspond au hash sui
 5. Choix d'un mot de passe de 3 caractères.
   Le mot de passe est `tes` et le hash correspondant est `28b662d883b6d76fd96e4ddc5e9ba780`.
 
-  Résultat : Le mot de passe est trouvé encore plus rapidement qu'auparvant.
+  Résultat : Le mot de passe est trouvé encore plus rapidement qu'auparavant.
 
   ![](img/R5.png)
