@@ -15,7 +15,7 @@ Le logiciel fonctionne en donnant la taille du mot de passe ainsi que le sel et 
 
 Nous avons initialement implémenter une première version avec comme optique de faire que chaque threads effectue l'un après l'autre le test de hash. Avec ce choix, nous avons du mettre en place un mutex pour permettre aux threads de ne pas rentrer dans la zone critique en même temps. La zone critique est l'incrémentation du vecteur d'entier contenant le mot de passe, ainsi que la transformation en chaine de caractères.
 
-![](img/ZoneCritique.png)
+![](img/ZoneCritique.PNG)
 
 Étant donné que la section est grande et contient deux boucles, le crackage de hash était de plus en plus lent, en augmentant le nombre de threads. Car le zone ne pouvait être accedée que par un thread à la fois.
 
