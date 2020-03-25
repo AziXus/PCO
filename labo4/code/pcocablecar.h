@@ -23,7 +23,7 @@ public:
     /*!
      * \brief constructeur qui permet de définir la capaicité du télécabine
      * \param capacity La capacité (nombre de places) dans le télécabine
-     * Par défaut la capacité est de 10.
+     * Par défaut la capacité est de 10. Initialise également la sémaphore
      */
     PcoCableCar(const unsigned int capacity = 10);
 
@@ -122,6 +122,12 @@ protected:
     bool inService = true;
 
     // A vous d'ajouter les attributs dont vous avez besoin
+    std::queue<int> waitingCable;
+    PcoSemaphore cableCarLoad;
+    PcoSemaphore cableCarUnload;
+    PcoSemaphore skieurInside;
+    PcoSemaphore skieurOutside;
+    PcoSemaphore mutex = PcoSemaphore(1);
 };
 
 #endif // PCOCABLECAR_H

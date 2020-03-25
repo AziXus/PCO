@@ -40,9 +40,9 @@ int main()
     threads.push_back(std::make_unique<CableCarBehavior>(cableCar));
 
     // Création des tâches skieurs
-    for (unsigned int i = 0; i < NB_SKIERS; ++i) {
+    /*for (unsigned int i = 0; i < NB_SKIERS; ++i) {
         threads.push_back(std::make_unique<SkierBehavior>(cableCar));
-    }
+    }*/
 
     // Mélange des tâches afin d'avoir un démarrage dans un ordre aléatoire
     std::random_shuffle(std::begin(threads), std::end(threads));

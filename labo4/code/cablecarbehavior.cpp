@@ -9,5 +9,10 @@
 
 void CableCarBehavior::run()
 {
-    // A vous d'ajouter le comportement du télécabine
+   /*while(cableCar->isInService()) {
+        cableCar->loadSkiers();
+        cableCar->goUp();
+        cableCar->unloadSkiers();
+        cableCar->goDown();
+    }*/
 }

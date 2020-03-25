@@ -16,7 +16,7 @@ constexpr unsigned int SECOND_IN_MICROSECONDS = 1000000;
 
 // A vous de remplir les méthodes ci-dessous
 
-PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity)
+PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(), cableCarUnload()
 {
 
 }
@@ -28,22 +28,28 @@ PcoCableCar::~PcoCableCar()
 
 void PcoCableCar::waitForCableCar(int id)
 {
-
+    mutex.acquire();
+    nbSkiersWaiting++;
+    mutex.release();
+    cableCarLoad.acquire();
 }
 
 void PcoCableCar::waitInsideCableCar(int id)
 {
-
+    cableCarUnload.acquire();
 }
 
 void PcoCableCar::goIn(int id)
 {
-
+    mutex.acquire();
+    nbSkiersInside++;
+    mutex.release();
+    skieurInside.release();
 }
 
 void PcoCableCar::goOut(int id)
 {
-
+    skieurOutside.release();
 }
 
 bool PcoCableCar::isInService()
@@ -53,7 +59,7 @@ bool PcoCableCar::isInService()
 
 void PcoCableCar::endService()
 {
-
+    inService = false;
 }
 
 void PcoCableCar::goUp()
@@ -70,10 +76,27 @@ void PcoCableCar::goDown()
 
 void PcoCableCar::loadSkiers()
 {
+    bool plein = false;
+    while(nbSkiersWaiting != 0 && !plein){
+        mutex.acquire();
+        if(nbSkiersInside < capacity){
+            cableCarLoad.release();
+            nbSkiersWaiting--;
 
+        }else{
+            plein = true;
+        }
+        mutex.release();
+    }
+    for (int i = 0; i < nbSkiersInside; ++i)
+        skieurInside.acquire();
 }
 
 void PcoCableCar::unloadSkiers()
 {
-
+    while(nbSkiersInside != 0){
+        cableCarUnload.release();
+        skieurOutside.acquire();
+        nbSkiersInside--;
+    }
 }
