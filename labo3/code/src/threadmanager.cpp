@@ -101,7 +101,7 @@ QString ThreadManager::startHacking(
     nbToComputePerThread = nbToCompute / nbThreads;
     percentageIncrement = (double)1000 / nbToCompute;
 
-    /* Crée les threads, on ajoutant leur pointeur à la liste.
+    /* Crée les threads, en ajoutant leur pointeur à la liste.
        Les threads sont immédiatement lancés par le constructeur. */
     for (long unsigned int i=0; i<nbThreads; i++)
     {
@@ -126,7 +126,7 @@ QString ThreadManager::startHacking(
 
     /*
      * Si on arrive ici, cela signifie que tous les mot de passe possibles ont
-     * été testés, et qu'aucun n'est la préimage de ce hash.
+     * été testés
      */
     return getPassword();
 }
