@@ -9,10 +9,12 @@
 
 void CableCarBehavior::run()
 {
-   /*while(cableCar->isInService()) {
+   while(cableCar->isInService()) {
         cableCar->loadSkiers();
         cableCar->goUp();
         cableCar->unloadSkiers();
         cableCar->goDown();
-    }*/
+    }
+
+   qDebug() << "cablecar se stop";
 }

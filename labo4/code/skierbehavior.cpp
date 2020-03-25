@@ -19,11 +19,17 @@ void SkierBehavior::run()
 {
     while(cableCar->isInService()){
         cableCar->waitForCableCar(id);//Stopper si télécabine pas là
+
+        if (!cableCar->isInService())
+            return;
+
         cableCar->goIn(id);//Stopper si plus de place
         cableCar->waitInsideCableCar(id);//Stopper tant que pas haut
         cableCar->goOut(id);
         goDownTheMountain();
     }
+
+    qDebug() << "Skieur " << id << " se stop";
 }
 
 void SkierBehavior::goDownTheMountain()

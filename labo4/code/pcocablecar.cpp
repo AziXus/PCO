@@ -31,6 +31,7 @@ void PcoCableCar::waitForCableCar(int id)
     mutex.acquire();
     nbSkiersWaiting++;
     mutex.release();
+    qDebug() << "waitForCableCar(" << id << ")";
     cableCarLoad.acquire();
 }
 
@@ -41,9 +42,7 @@ void PcoCableCar::waitInsideCableCar(int id)
 
 void PcoCableCar::goIn(int id)
 {
-    mutex.acquire();
-    nbSkiersInside++;
-    mutex.release();
+    qDebug() << "goIn(" << id << ")";
     skieurInside.release();
 }
 
@@ -59,7 +58,14 @@ bool PcoCableCar::isInService()
 
 void PcoCableCar::endService()
 {
+    qDebug() << "Arret du service";
+
     inService = false;
+
+    while (nbSkiersWaiting != 0) {
+        cableCarLoad.release();
+        nbSkiersWaiting--;
+    }
 }
 
 void PcoCableCar::goUp()
@@ -81,8 +87,8 @@ void PcoCableCar::loadSkiers()
         mutex.acquire();
         if(nbSkiersInside < capacity){
             cableCarLoad.release();
+            nbSkiersInside++;
             nbSkiersWaiting--;
-
         }else{
             plein = true;
         }
