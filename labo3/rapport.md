@@ -5,7 +5,7 @@ Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 ## Description des fonctionnalités du logiciel
 
 Lors de ce laboratoire, il nous a été demandés d'implémenter du multi-threading dans une application de crackage de mot de passe md5.  
- Il a fallu implémenter cela, car l'application était fonctionnelle mais avait des problèmes de performances et donc avec un programme multi-threadé il était possible de fortement améliorer son fonctionnement.
+ Il a fallu implémenter cela car, l'application était fonctionnelle mais avait des problèmes de performances et donc avec un programme multi-threadé il était possible de fortement améliorer son fonctionnement.
 
  Au lieu d'avoir un seul thread pour cracker nous aurions plusieurs threads se partageant les essais pour effectuer le crackge plus rapidement.
 
