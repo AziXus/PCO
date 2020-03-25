@@ -1,5 +1,5 @@
 /**
-  \file mythread.h
+  \file mythread.cpp
   \author Müller Robin, Teixeira Carvalho Stéphane
   \date 19.03.2020
   \brief Classe pour permettre de définir ce qu'un thread doit effectuer lors d'un crackage de mot de passe
@@ -11,12 +11,19 @@
 #include <pcosynchro/pcomutex.h>
 #include "threadmanager.h"
 
-/* Use _ because element is static */
+/* Utilisation de _ parce que les élèment sont static */
+//Tous les threads auront accès aux différentes variables ci-dessous
+//Aucun mécanisme de protection n'a été mis en place car nous effectuons du parallélisme
+
+//Les variables ci-dessous seront lu par le différents thread
+//car elle permettent de définir le fonctionnement du crackage
 static QString _charset;
 static QString _salt;
 static QString _hash;
-static QString _password;
 static unsigned int _nbChars;
+//La variable _password sera accéder en lecture et écriture par les threads
+//Elle contiendra le mot de passe si celui-ci est trouvé sinon elle sera vide
+static QString _password;
 
 QString getPassword() {
     return _password;
@@ -96,7 +103,7 @@ void crack(QVector<unsigned int> currentPasswordArray, long long unsigned int nb
         }
 
         /*
-         * On récupère le mot de pass à tester suivant.
+         * On récupère le mot de passe à tester suivant.
          *
          * L'opération se résume à incrémenter currentPasswordArray comme si
          * chaque élément de ce vecteur représentait un digit d'un nombre en
