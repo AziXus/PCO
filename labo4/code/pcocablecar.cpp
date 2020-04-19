@@ -3,7 +3,7 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Prénom Nom, Prénom Nom
+// Auteurs : Robin Muller, Stéphane Teixeira Carvalho
 
 #include "pcocablecar.h"
 #include <pcosynchro/pcothread.h>
