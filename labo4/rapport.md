@@ -62,15 +62,113 @@ La sémaphore `skieurInside` permet à la télécabine de faire monter un skieur
 
 La sémaphore `skieurOutside` permet de faire descendre les skieurs qui sont dans la télécabine 1 par 1. Elle a le même fonctionnement que `skieurInside` mais sauf que cette fois-ci celle permet de ne pas faire descendre une télécabine si tout les skieurs ne sont pas tous descendus.
 
-La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme car il y a beacoup d'action qui doivent être mise dans une zone critique. Comme par exemple les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée.
+La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme.
+Nous devons mettre cela en place car nous aurons des zones critiques avec les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée.
+
+#Ajouter une explication sur le nbSkiersInside
 
 Grâce aux sémaphores expliquées ci-dessus il nous est maintenant possible de gérer la synchronisation entre les thread skieurs et le thread de la télécabine.
 
 
 ## Tests effectués
 
-Pour les tests nous avons decidés d'inclure 2 démonstrations de tests avec 1 puis 2 skieurs. La télécabine dans les 2 tests à une capacité de 5 places.
+Pour les tests nous avons decidés d'inclure 2 démonstrations de tests avec 1 puis 2 skieurs. La télécabine dans le premier test à une capacité de 5 places tandis que dans le deuxième elle a une capacité de 1.
 
 ### Test avec un skieur
+```
+Démarrage de la simulation de skieurs et télécabine ...
+Nombre de skieurs : 1
+Capacité du télécabine : 5
+Appuyez sur ENTER pour terminer
+
+[START] Thread du télécabine lancé
+[START] Thread du skieur 1 lancé
+Le télécabine monte
+waitForCableCar( 1 )
+Le télécabine atteint le sommet
+Le télécabine descend
+Le télécabine atteint le bas
+goIn( 1 )
+waitInsideCableCar( 1 )
+Le télécabine monte
+Le télécabine atteint le sommet
+goOut( 1 )
+Skieur 1 est en train de skier et descend de la montagne
+Le télécabine descend
+Le télécabine atteint le bas
+Le télécabine monte
+Le télécabine atteint le sommet
+Le télécabine descend
+Skieur 1 est arrivé en bas de la montagne
+waitForCableCar( 1 )
+
+Arret du service
+Le télécabine atteint le bas
+cablecar se stop
+[STOP] Thread du télécabine a terminé correctement
+[STOP] Thread du skieur 1 a terminé correctement
+```
+Dans le résultat ci-dessus on voit bien que le skieur attend la télécabine.  
+On voit également que tant que la télécabine monte le skieur attend à l'intérieur.  
+On peut aussi constater que la télécabine attend que le skieur monte à l'intérieur avant de commencer la remontée et qu'elle attend qu'il descende avant de redescendre.
+
+Grâce au test ci-dessus on voit que les comportements des skieurs et celui de la télécabine est bien ceux desirés.
+
+### Test avec deux skieurs
+```
+Démarrage de la simulation de skieurs et télécabine ...
+Nombre de skieurs : 2
+Capacité du télécabine : 1
+Appuyez sur ENTER pour terminer
+
+[START] Thread du télécabine lancé
+[START] Thread du skieur 2 lancé
+[START] Thread du skieur 1 lancé
+Le télécabine monte
+waitForCableCar( 1 )
+waitForCableCar( 2 )
+Le télécabine atteint le sommet
+Le télécabine descend
+Le télécabine atteint le bas
+goIn( 1 )
+waitInsideCableCar( 1 )
+Le télécabine monte
+Le télécabine atteint le sommet
+goOut( 1 )
+Skieur 1 est en train de skier et descend de la montagne
+Le télécabine descend
+Le télécabine atteint le bas
+goIn( 2 )
+waitInsideCableCar( 2 )
+Le télécabine monte
+Le télécabine atteint le sommet
+goOut( 2 )
+Skieur 2 est en train de skier et descend de la montagne
+Le télécabine descend
+Skieur 2 est arrivé en bas de la montagne
+waitForCableCar( 2 )
+Le télécabine atteint le bas
+goIn( 2 )
+waitInsideCableCar( 2 )
+Le télécabine monte
+Skieur 1 est arrivé en bas de la montagne
+waitForCableCar( 1 )
+Le télécabine atteint le sommet
+goOut( 2 )
+Skieur 2 est en train de skier et descend de la montagne
+Le télécabine descend
+
+Arret du service
+Skieur 2 est arrivé en bas de la montagne
+Skieur  2  se stop
+Le télécabine atteint le bas
+cablecar se stop
+[STOP] Thread du télécabine a terminé correctement
+[STOP] Thread du skieur 2 a terminé correctement
+[STOP] Thread du skieur 1 a terminé correctement
+Press <RETURN> to close this window...
+```
+Grâce au test ci-dessus on peut voir que la télécabine prend les threads dans l'ordre  et le comportement des threads fonctionne toujours comme nous le désirons.
+
 
 Pour les tests plus conséquent nous avons fait un tableau expliquant le test ainsi que son résultat.
