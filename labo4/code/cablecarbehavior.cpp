@@ -14,7 +14,7 @@ void CableCarBehavior::run()
         cableCar->goUp();
         cableCar->unloadSkiers();
         cableCar->goDown();
-    }
-
+   }
+   //Message pour le debug
    qDebug() << "cablecar se stop";
 }

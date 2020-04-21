@@ -18,17 +18,18 @@ int SkierBehavior::nextId = 1;
 void SkierBehavior::run()
 {
     while(cableCar->isInService()){
-        cableCar->waitForCableCar(id);//Stopper si télécabine pas là
+        cableCar->waitForCableCar(id);
 
+        //Test une seconde fois car le skieur pourrait être en attente de la télécabine quand celle-ci termine son service
         if (!cableCar->isInService())
             return;
 
-        cableCar->goIn(id);//Stopper si plus de place
-        cableCar->waitInsideCableCar(id);//Stopper tant que pas haut
+        cableCar->goIn(id);
+        cableCar->waitInsideCableCar(id);
         cableCar->goOut(id);
         goDownTheMountain();
     }
-
+    //Message de debug
     qDebug() << "Skieur " << id << " se stop";
 }
 

@@ -3,7 +3,7 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Prénom Nom, Prénom Nom
+// Auteurs : Robin Muller, Stéphane Teixeira Carvalho
 
 #ifndef PCOCABLECAR_H
 #define PCOCABLECAR_H
@@ -122,7 +122,6 @@ protected:
     bool inService = true;
 
     // A vous d'ajouter les attributs dont vous avez besoin
-    std::queue<int> waitingCable;
     PcoSemaphore cableCarLoad;
     PcoSemaphore cableCarUnload;
     PcoSemaphore skieurInside;

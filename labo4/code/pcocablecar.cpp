@@ -14,9 +14,7 @@ constexpr unsigned int MIN_SECONDS_DELAY = 1;
 constexpr unsigned int MAX_SECONDS_DELAY = 5;
 constexpr unsigned int SECOND_IN_MICROSECONDS = 1000000;
 
-// A vous de remplir les méthodes ci-dessous
-
-PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(), cableCarUnload()
+PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(0), cableCarUnload(0)
 {
 
 }
@@ -28,27 +26,33 @@ PcoCableCar::~PcoCableCar()
 
 void PcoCableCar::waitForCableCar(int id)
 {
+    // Incrémentation du nombre de skieur qui attendent la télécabine
     mutex.acquire();
     nbSkiersWaiting++;
     mutex.release();
     qDebug() << "waitForCableCar(" << id << ")";
+    // Bloque le thread et attend que la télécabine autorise le skieur à monter
+    // Grâce à la FIFO implémeneter dans les sémaphores ils attenderont dans l'ordre d'arrivée
     cableCarLoad.acquire();
 }
 
 void PcoCableCar::waitInsideCableCar(int id)
 {
     qDebug() << "waitInsideCableCar(" << id << ")";
+    // Attend que la télécabine donne le signal que le skieur peut descendre
     cableCarUnload.acquire();
 }
 
 void PcoCableCar::goIn(int id)
 {
+    // Donne un signal à la télécabine que le skieur à fini de monter dans celle-ci
     skieurInside.release();
     qDebug() << "goIn(" << id << ")";
 }
 
 void PcoCableCar::goOut(int id)
 {
+    // Donne un signal à la télécabine que le skieur à fini de descendre dans celle-ci
     skieurOutside.release();
     qDebug() << "goOut(" << id << ")";
 }
@@ -102,7 +106,7 @@ void PcoCableCar::loadSkiers()
         mutex.release();
     }
     
-    // On attend que les skieurs entrent dans la télécabine
+    // On attend que tous les skieurs entrent dans la télécabine
     for (unsigned i = 0; i < nbToLoad; ++i) {
         skieurInside.acquire();
         ++nbSkiersInside; // nbSkiersInside est uniquement utilisé par un thread

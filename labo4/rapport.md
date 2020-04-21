@@ -13,30 +13,37 @@ La cabine fera monter des skieurs sur la piste et ils descendront alors la piste
 La télécabine ne pourra pas supporter plus de `M` skieurs.
 Une fois toutes les places prises, les skieurs attendront la prochaine remontée. Ils devront donc attendre leur tour.
 
+Si la télécabine termine son service et que des skieurs sont en attente ils ne pourront pas effectuer la montée, ils rentrent.
+
+Lorsque la fin de service est annoncé la cabine si elle se préparait à monter charge les skieurs et effectue la montée puis elle décharge des skieurs et redescends puis s'arrête.  
+Sinon si elle était en descente elle s'arrête à la fin de la descente.
+
 Il est possible de voir d'après les explications ci-dessus qu'il faut effectivement implémenter de la synchronisation entre les threads de par le fait que les skieurs ne peuvent pas descendre la montagne sans avoir pris la télécabine ou encore qu'il ne peuvent pas monter à plus de `M` personnes etc...
 
 ## Choix d'implémentation
 
 En prenant en compte les fonctionnalités que le problème expliqué ci-dessus comporte, voici comment nous avons implémenté la solution à ce problème.
 
-Dans un premier temps nous avons décidé du comportement de la télécabine et des skieurs. Voici 2 workflow expliquant le fonctionnement.
+Dans un premier temps nous avons décidé du comportement de la télécabine et des skieurs. Voici 2 flowchart expliquant le fonctionnement.
 
 ![Comportement programme](./images/Behaviors.png)
 
-Si nous commençons par la `télécabine` son comportement est très basique s'il est en service elle fait monter et descendre des skieurs. Même si aucun skieurs n'est présent lors de l'arrivée de la télécabine celle-ci montera quand même.
+Si nous commençons par la `télécabine` son comportement est très basique si elle est en service elle fait monter et descendre des skieurs. Même si aucun skieurs n'est présent lors de l'arrivée de la télécabine celle-ci montera quand même.
 
-Une fois que la `télécabine` est montée, elle doit faire descendre tous ces skieurs avant de pouvoir redescendre. Une fois tous les skieurs hors de la télécabine celle-ci descend et le cycle recommence.
+Pour que la `télécabine` effectue la remontée il faut que tout les skieurs qu'elle va monter aient fini de monter dans la télécabine.
+
+Une fois que la `télécabine` a montée, elle doit faire descendre tous ces skieurs avant de pouvoir redescendre. Une fois tous les skieurs hors de la télécabine celle-ci descend et le cycle recommence.
 
 Si nous prenons maintenant les `skieurs`, on sait que si la cabine est en service, il doit attendre la télécabine car celle-ci pourrait être en haut de la montagne ou effectue une montée ou encore une descente.  
-Une fois que la télécabine arrive le `skieur` doit à nouveau vérifier que la télécabine est en service car cela pouvait être sa dernière remontée ~ou il pourrait y avoir un problème technique~ dans ce cas le comportement du skieurs est stoppé.
+Une fois que la télécabine arrive le `skieur` doit à nouveau vérifier que la télécabine est en service car cela pouvait être sa dernière remontée et donc elle ne remontera plus. Dans ce cas le comportement du skieurs est stoppé.
 
-Par contre, si la télécabine est en service, le skieur va alors monter dans celle-ci puis attendre à l'intérieur que les autres skieurs montent dans la télécabine, ainsi que le temps de la montée. Une fois la montée terminée, il va sortir de la télécabine et descendre la montagne.
+Par contre, si la télécabine est en service, le skieur va alors monter dans celle-ci puis, attendre à l'intérieur le temps que les autres skieurs montent dans la télécabine et que la montée se termine. Une fois la montée terminée, il va sortir de la télécabine et descendre la montagne.
 
-Nous n'avons bien sûr pas encore expliqué les besoins de synchronisation car ici le but est d'expliquer simplement le comportement que nous voulons des 2 classes.
+Nous n'avons bien sûr pas encore démontré comment nous avons implémenter la synchronisation car ici le but est d'expliquer simplement le comportement que nous voulons des 2 classes néanmoins nous pouvons déjà voir que la `télécabine` et les `skieurs` auront besoin de signaux pour arrêter leur exécution ou la reprendre.
 
 Une fois les comportements mis en place nous avons implémenté la classe `PcoCableCar.cpp`.
 
-Pour l'implémentation des différents fonctionnements nous utiliser 4 sémaphores.
+Pour l'implémentation des différents fonctionnements et la synchronisation entre threads nous avons utilisés 4 sémaphores.
 
 ```cpp
 PcoSemaphore cableCarLoad;
@@ -55,7 +62,15 @@ La sémaphore `skieurInside` permet à la télécabine de faire monter un skieur
 
 La sémaphore `skieurOutside` permet de faire descendre les skieurs qui sont dans la télécabine 1 par 1. Elle a le même fonctionnement que `skieurInside` mais sauf que cette fois-ci celle permet de ne pas faire descendre une télécabine si tout les skieurs ne sont pas tous descendus.
 
-La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme car il y a beacoup d'action qui doivent être mise dans une zone critique. Comme par exemple les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée
+La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme car il y a beacoup d'action qui doivent être mise dans une zone critique. Comme par exemple les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée.
+
+Grâce aux sémaphores expliquées ci-dessus il nous est maintenant possible de gérer la synchronisation entre les thread skieurs et le thread de la télécabine.
 
 
 ## Tests effectués
+
+Pour les tests nous avons decidés d'inclure 2 démonstrations de tests avec 1 puis 2 skieurs. La télécabine dans les 2 tests à une capacité de 5 places.
+
+### Test avec un skieur
+
+Pour les tests plus conséquent nous avons fait un tableau expliquant le test ainsi que son résultat.
