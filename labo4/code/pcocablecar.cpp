@@ -14,7 +14,7 @@ constexpr unsigned int MIN_SECONDS_DELAY = 1;
 constexpr unsigned int MAX_SECONDS_DELAY = 5;
 constexpr unsigned int SECOND_IN_MICROSECONDS = 1000000;
 
-PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(0), cableCarUnload(0)
+PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(0), cableCarUnload(0), skieurInside(0), skieurOutside(0)
 {
 
 }
@@ -45,16 +45,16 @@ void PcoCableCar::waitInsideCableCar(int id)
 
 void PcoCableCar::goIn(int id)
 {
+    qDebug() << "goIn(" << id << ")";
     // Donne un signal à la télécabine que le skieur à fini de monter dans celle-ci
     skieurInside.release();
-    qDebug() << "goIn(" << id << ")";
 }
 
 void PcoCableCar::goOut(int id)
 {
+    qDebug() << "goOut(" << id << ")";
     // Donne un signal à la télécabine que le skieur à fini de descendre dans celle-ci
     skieurOutside.release();
-    qDebug() << "goOut(" << id << ")";
 }
 
 bool PcoCableCar::isInService()
