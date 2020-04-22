@@ -54,17 +54,19 @@ PcoSemaphore mutex = PcoSemaphore(1);
 PcoSemaphore mutexloadSkiersEndService = PcoSemaphore(1);
 ```
 
-La première sémaphore `cableCarLoad` va permettre à un skieurs de faire une demande(`acquire`) pour monter dans la télécabine lorsque un skieur attendra la télécabine(`waitForCableCar`). Cette sémaphore nous permet également de maintenir les demandes d'accès des skieurs dans l'ordre grâce à la FIFO mise en place dans la conception de sémaphore.  
+La première sémaphore `cableCarLoad` va permettre à un skieurs de faire une demande(`acquire`) pour monter dans la télécabine lorsque un skieur attendra la télécabine(fonction `waitForCableCar`). Cette sémaphore nous permet également de maintenir les demandes d'accès des skieurs dans l'ordre grâce à la FIFO mise en place dans la conception de sémaphore.  
 Les demandes seront ensuite accepté(`release`) lorsque que la télécabine fera monter les skieurs.
 
 La deuxième sémaphore `cableCarUnload` permet à un skieur de faire une demande pour descendre de la télécabine. Ainsi tant que la télécabine ne permet pas au skieur de descendre(`release`) celui-ci attends à l'intérieur de la télécabine(`waitInsideCableCar`).
 
-La sémaphore `skieurInside` permet à la télécabine de faire monter un skieur à la fois. La télécabine va indiquer au skieurs que celui-ci peut monter(`acquire`) et une fois que celui-ci a terminé de monter(`release`) un autre skieur peut monter. Ainsi la télécabine ne peut pas partir tant que les skieurs ne sont as tous complètement montés.
+La sémaphore `skieurInside` permet à la télécabine d'attendre que tous les skieurs soit entrés. La télécabine va indiquer au skieurs que celui-ci peut monter(`acquire`) et une fois que celui-ci a terminé de monter(`release`), la télécabine attend le prochain skieur. Ainsi la télécabine ne peut pas partir tant que les skieurs ne sont pas tous complètement montés.
 
-La sémaphore `skieurOutside` permet de faire descendre les skieurs qui sont dans la télécabine 1 par 1. Elle a le même fonctionnement que `skieurInside` mais sauf que cette fois-ci celle permet de ne pas faire descendre une télécabine si tout les skieurs ne sont pas tous descendus.
+La sémaphore `skieurOutside` d'attendre que tous les skieurs soit sortis. Elle a le même fonctionnement que `skieurInside` mais sauf qu'elle permet d'éviter de faire descendre la télécabine tant que tous les skieurs ne sont pas tous descendus.
 
 La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme.
-Nous devons mettre cela en place car nous aurons des zones critiques avec les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée.
+Nous devons mettre cela en place car nous aurons des zones critiques, principalement lié à la variable `nbSkiersWaiting`. Cette variable est utilisée par les threads skieurs lorsqu'ils attendent la télécabine (dans la fonction `waitForCableCar`) ainsi que par la télécabine lors du chargement des skieurs et la fin du service.
+
+Une seconde variable, `nbSkiersInside`, est uniquement utilisée par l'unique thread télécabine. Elle n'a donc pas besoin d'être protégée. Elle est utilisée lors du chargement et déchargement des skieurs.
 
 Nous avons égalemet défini un deuxième mutex se nommant `mutexLoadingEndService` ce verrou va nous permettre d'éviter d'avoir des problèmes de deadlock avec la fonction loadSkiers.  
 Voici comment le deadlock survenait :  
@@ -208,3 +210,27 @@ Grâce au test ci-dessus on peut voir que la télécabine prend les threads dans
 
 
 Pour les tests plus conséquent nous avons fait un tableau expliquant le test ainsi que son résultat.
+
+### Tests en variant le nombre de skieurs et la capacité de la télécabine
+Chaque test a été effectuée à deux reprises, avec un démarrage des threads dans un ordre aléatoire sans délai ainsi qu'en commençant par les skieurs puis le télécabine avec un délai de 100ms entre chaque threads.
+
+| # | Nb skieurs | Capacité | Résultat |
+|---|------------|----------|----------|
+| 1 | 10         | 5        | 2/2      |
+| 2 | 10         | 2        | 2/2      |
+| 3 | 10         | 10       | 2/2      |
+| 4 | 10         | 20       | 2/2      |
+| 5 | 40         | 20       | 2/2      |
+| 6 | 100        | 20       | 2/2      |
+
+### Tests en supprimant les délais des skieurs et de la télécabine
+Les tests ont été effectués avec un démarrage des threads dans un ordre aléatoire sans délai.
+
+| # | Nb skieurs | Capacité | Résultat |
+|---|------------|----------|----------|
+| 1 | 10         | 5        | OK       |
+| 2 | 10         | 2        | OK       |
+| 3 | 10         | 10       | OK       |
+| 4 | 10         | 20       | OK       |
+| 5 | 40         | 20       | OK       |
+| 6 | 100        | 20       | OK       |
