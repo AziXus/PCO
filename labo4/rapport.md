@@ -1,4 +1,4 @@
-# Labo 4 : Telecabine
+# Labo 4 : Télécabine
 
 Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 
