@@ -64,6 +64,7 @@ bool PcoCableCar::isInService()
 
 void PcoCableCar::endService()
 {
+    mutex2.acquire();
     qDebug() << "Arret du service";
 
     inService = false;
@@ -75,6 +76,8 @@ void PcoCableCar::endService()
         nbSkiersWaiting--;
         mutex.release();
     }
+
+    mutex2.release();
 }
 
 void PcoCableCar::goUp()
@@ -93,6 +96,8 @@ void PcoCableCar::goDown()
 
 void PcoCableCar::loadSkiers()
 {
+    mutex2.acquire();
+    qDebug() << "loadSkiers()";
     // Calcul du nombre de skieurs à charger
     mutex.acquire();
     unsigned nbToLoad = std::min(nbSkiersWaiting, capacity);
@@ -105,24 +110,29 @@ void PcoCableCar::loadSkiers()
         --nbSkiersWaiting;
         mutex.release();
     }
-    
+
     // On attend que tous les skieurs entrent dans la télécabine
     for (unsigned i = 0; i < nbToLoad; ++i) {
         skieurInside.acquire();
-        ++nbSkiersInside; // nbSkiersInside est uniquement utilisé par un thread
+        ++nbSkiersInside;
     }
+    mutex2.release();
 }
 
 void PcoCableCar::unloadSkiers()
 {
+    qDebug() << "unloadSkiers()";
+
     // Release des skieurs à l'intérieur de la télécabine
     for (unsigned i = 0; i < nbSkiersInside; ++i) {
         cableCarUnload.release();
     }
 
     // On attend que les skieurs sortent de la télécabine
+    mutex.acquire();
     while (nbSkiersInside > 0) {
         skieurOutside.acquire();
         nbSkiersInside--;
     }
+    mutex.release();
 }
