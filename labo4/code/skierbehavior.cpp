@@ -22,7 +22,7 @@ void SkierBehavior::run()
 
         //Test une seconde fois car le skieur pourrait être en attente de la télécabine quand celle-ci termine son service
         if (!cableCar->isInService())
-            return;
+            break;
 
         cableCar->goIn(id);
         cableCar->waitInsideCableCar(id);

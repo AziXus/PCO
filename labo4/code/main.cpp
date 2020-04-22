@@ -57,7 +57,7 @@ int main()
     QString Line = qin.readLine();
 
     // Fin de service
-    //cableCar->endService();
+    cableCar->endService();
 
     // Attendre la fin des threads
     for (auto& thread : threads) {
