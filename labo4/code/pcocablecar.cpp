@@ -14,7 +14,7 @@ constexpr unsigned int MIN_SECONDS_DELAY = 1;
 constexpr unsigned int MAX_SECONDS_DELAY = 5;
 constexpr unsigned int SECOND_IN_MICROSECONDS = 1000000;
 
-PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(0), cableCarUnload(0)
+PcoCableCar::PcoCableCar(const unsigned int capacity) : capacity(capacity), cableCarLoad(0), cableCarUnload(0), skieurInside(0), skieurOutside(0)
 {
 
 }
@@ -45,16 +45,16 @@ void PcoCableCar::waitInsideCableCar(int id)
 
 void PcoCableCar::goIn(int id)
 {
+    qDebug() << "goIn(" << id << ")";
     // Donne un signal à la télécabine que le skieur à fini de monter dans celle-ci
     skieurInside.release();
-    qDebug() << "goIn(" << id << ")";
 }
 
 void PcoCableCar::goOut(int id)
 {
+    qDebug() << "goOut(" << id << ")";
     // Donne un signal à la télécabine que le skieur à fini de descendre dans celle-ci
     skieurOutside.release();
-    qDebug() << "goOut(" << id << ")";
 }
 
 bool PcoCableCar::isInService()
@@ -64,6 +64,7 @@ bool PcoCableCar::isInService()
 
 void PcoCableCar::endService()
 {
+    mutex2.acquire();
     qDebug() << "Arret du service";
 
     inService = false;
@@ -75,6 +76,8 @@ void PcoCableCar::endService()
         nbSkiersWaiting--;
         mutex.release();
     }
+
+    mutex2.release();
 }
 
 void PcoCableCar::goUp()
@@ -93,6 +96,8 @@ void PcoCableCar::goDown()
 
 void PcoCableCar::loadSkiers()
 {
+    mutex2.acquire();
+    qDebug() << "loadSkiers()";
     // Calcul du nombre de skieurs à charger
     mutex.acquire();
     unsigned nbToLoad = std::min(nbSkiersWaiting, capacity);
@@ -105,24 +110,29 @@ void PcoCableCar::loadSkiers()
         --nbSkiersWaiting;
         mutex.release();
     }
-    
+
     // On attend que tous les skieurs entrent dans la télécabine
     for (unsigned i = 0; i < nbToLoad; ++i) {
         skieurInside.acquire();
-        ++nbSkiersInside; // nbSkiersInside est uniquement utilisé par un thread
+        ++nbSkiersInside;
     }
+    mutex2.release();
 }
 
 void PcoCableCar::unloadSkiers()
 {
+    qDebug() << "unloadSkiers()";
+
     // Release des skieurs à l'intérieur de la télécabine
     for (unsigned i = 0; i < nbSkiersInside; ++i) {
         cableCarUnload.release();
     }
 
     // On attend que les skieurs sortent de la télécabine
+    mutex.acquire();
     while (nbSkiersInside > 0) {
         skieurOutside.acquire();
         nbSkiersInside--;
     }
+    mutex.release();
 }
