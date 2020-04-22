@@ -36,6 +36,6 @@ void SkierBehavior::run()
 void SkierBehavior::goDownTheMountain()
 {
     qDebug() << "Skieur" << id << "est en train de skier et descend de la montagne";
-    PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
+    //PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
     qDebug() << "Skieur" << id << "est arrivé en bas de la montagne";
 }

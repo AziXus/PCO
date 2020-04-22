@@ -127,6 +127,7 @@ protected:
     PcoSemaphore skieurInside;
     PcoSemaphore skieurOutside;
     PcoSemaphore mutex = PcoSemaphore(1);
+    unsigned int nbToLoad;
 };
 
 #endif // PCOCABLECAR_H

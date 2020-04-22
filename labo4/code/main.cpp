@@ -20,8 +20,8 @@
 #include "skierbehavior.h"
 #include "cablecarbehavior.h"
 
-constexpr unsigned int NB_SKIERS = 2;
-constexpr unsigned int CABLE_CAR_CAPACITY = 1;
+constexpr unsigned int NB_SKIERS = 10;
+constexpr unsigned int CABLE_CAR_CAPACITY = 2;
 
 int main()
 {
@@ -57,7 +57,7 @@ int main()
     QString Line = qin.readLine();
 
     // Fin de service
-    cableCar->endService();
+    //cableCar->endService();
 
     // Attendre la fin des threads
     for (auto& thread : threads) {
