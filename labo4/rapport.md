@@ -51,6 +51,7 @@ PcoSemaphore cableCarUnload;
 PcoSemaphore skieurInside;
 PcoSemaphore skieurOutside;
 PcoSemaphore mutex = PcoSemaphore(1);
+PcoSemaphore mutexloadSkiersEndService = PcoSemaphore(1);
 ```
 
 La première sémaphore `cableCarLoad` va permettre à un skieurs de faire une demande(`acquire`) pour monter dans la télécabine lorsque un skieur attendra la télécabine(`waitForCableCar`). Cette sémaphore nous permet également de maintenir les demandes d'accès des skieurs dans l'ordre grâce à la FIFO mise en place dans la conception de sémaphore.  
@@ -65,7 +66,42 @@ La sémaphore `skieurOutside` permet de faire descendre les skieurs qui sont dan
 La sémaphore `mutex` comme son nom l'indique va nous permettre d'avoir un verrou dans notre programme.
 Nous devons mettre cela en place car nous aurons des zones critiques avec les variables `nbSkiersWaiting` et `nbSkiersInside` qui vont souvent être incrémentée ou décrementée.
 
-#Ajouter une explication sur le nbSkiersInside
+Nous avons égalemet défini un deuxième mutex se nommant `mutexLoadingEndService` ce verrou va nous permettre d'éviter d'avoir des problèmes de deadlock avec la fonction loadSkiers.  
+Voici comment le deadlock survenait :  
+Au début de la fonction nous effectuons une opération qui nous indique le nombre de skieur que nous allons mettre dans la cabine(`nbToLoad = std::min(nbSkiersWaiting, capacity)`) puis nous effectuons une première boucle des release des skieurs(cableCarLoad) en fonction du nombre de skieur à charger et c'est au moment de la deuxième boucle pour attendre que les skieurs montent(skieurInside.acquire), qui se base également sur nbToLoad, que nous avons un deadlock si un endService est apparu.    
+Cela provient du fait que lors d'un endService nous allons relacher tout les skieurs pour qu'il arrête d'attendre et donc nous mettons nbSkiersWaiting à 0. Donc si nbToLoad est supérieur à 0 nous avons alors on problème car nous allons attendre qu'un skieur monte alors que tous ceux-ci ont été relachés et se sont arrêtés.  
+
+Cela est donc éviter en mettant le acquire de ce mutex en début de chaque fonction et un relaease en fin ainsi si un loadSkier ou un endService est en exécution la fonction doit attendre la fin de son exécution
+
+Pour avoir une idée du résultat voici le code de la fonction loadSkier :
+```cpp
+void PcoCableCar::loadSkiers()
+{
+    // Permet d'attendre la fin d'execution d'un EndService si exécuté
+    mutexLoadingEndService.acquire();
+    qDebug() << "loadSkiers()";
+    // Calcul du nombre de skieurs à charger
+    mutex.acquire();
+    unsigned nbToLoad = std::min(nbSkiersWaiting, capacity);
+    mutex.release();
+
+    // On laisse les skieurs entrer dans la télécabine
+    for (unsigned i= 0; i < nbToLoad; ++i) {
+            cableCarLoad.release();
+            mutex.acquire();
+            --nbSkiersWaiting;
+            mutex.release();
+    }
+    // On attend que tous les skieurs entrent dans la télécabine
+    for(unsigned i = 0; i < nbToLoad; ++i){
+        skieurInside.acquire();
+        ++nbSkiersInside;
+    }
+    mutexLoadingEndService.release();
+}
+```
+
+Dans le code nous avons utiliser la variable nbSkiersInside en faisant des incrémentation et décrementation sans jamais la protéger d'un mutex. Nous avons fait cela car cette variable ne sera utiliser que par le thread cablecar et donc pas de problème de concurrence.
 
 Grâce aux sémaphores expliquées ci-dessus il nous est maintenant possible de gérer la synchronisation entre les thread skieurs et le thread de la télécabine.
 
