@@ -64,7 +64,8 @@ bool PcoCableCar::isInService()
 
 void PcoCableCar::endService()
 {
-    mutex2.acquire();
+    //Permet d'attendre si un load du CableCar est efféctué
+    mutexLoadingEndService.acquire();
     qDebug() << "Arret du service";
 
     inService = false;
@@ -75,28 +76,30 @@ void PcoCableCar::endService()
         mutex.acquire();
         nbSkiersWaiting--;
         mutex.release();
+
     }
 
-    mutex2.release();
+    mutexLoadingEndService.release();
 }
 
 void PcoCableCar::goUp()
 {
     qDebug() << "Le télécabine monte";
-    PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
+    //PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
     qDebug() << "Le télécabine atteint le sommet";
 }
 
 void PcoCableCar::goDown()
 {
     qDebug() << "Le télécabine descend";
-    PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
+    //PcoThread::usleep((MIN_SECONDS_DELAY + QRandomGenerator::system()->bounded(MAX_SECONDS_DELAY + 1)) * SECOND_IN_MICROSECONDS);
     qDebug() << "Le télécabine atteint le bas";
 }
 
 void PcoCableCar::loadSkiers()
 {
-    mutex2.acquire();
+    // Permet d'attendre la fin d'execution d'un EndService si exécuté
+    mutexLoadingEndService.acquire();
     qDebug() << "loadSkiers()";
     // Calcul du nombre de skieurs à charger
     mutex.acquire();
@@ -104,19 +107,18 @@ void PcoCableCar::loadSkiers()
     mutex.release();
 
     // On laisse les skieurs entrer dans la télécabine
-    for (unsigned i = 0; i < nbToLoad; ++i) {
-        cableCarLoad.release();
-        mutex.acquire();
-        --nbSkiersWaiting;
-        mutex.release();
+    for (unsigned i= 0; i < nbToLoad; ++i) {
+            cableCarLoad.release();
+            mutex.acquire();
+            --nbSkiersWaiting;
+            mutex.release();
     }
-
     // On attend que tous les skieurs entrent dans la télécabine
-    for (unsigned i = 0; i < nbToLoad; ++i) {
+    for(unsigned i = 0; i < nbToLoad; ++i){
         skieurInside.acquire();
         ++nbSkiersInside;
     }
-    mutex2.release();
+    mutexLoadingEndService.release();
 }
 
 void PcoCableCar::unloadSkiers()
