@@ -12,6 +12,8 @@
 #include "launchable.h"
 #include "sharedsectioninterface.h"
 
+#include <pcosynchro/pcosemaphore.h>
+
 /**
  * @brief La classe LocomotiveBehavior représente le comportement d'une locomotive
  */
@@ -22,8 +24,11 @@ public:
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection /*, autres paramètres éventuels */) : loco(loco), sharedSection(sharedSection) {
+    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection, int contactDepart, int contactSectionDepart, int contactSectionFin) : loco(loco), sharedSection(sharedSection) {
         // Eventuel code supplémentaire du constructeur
+        this->contactDepart = contactDepart;
+        this->contactSectionDepart = contactSectionDepart;
+        this->contactSectionFin = contactSectionFin;
     }
 
 protected:
@@ -57,6 +62,10 @@ protected:
      *
      * Par exemple la priorité ou le parcours
      */
+    int contactDepart;
+    int contactSectionDepart;
+    int contactSectionFin;
+    static PcoSemaphore mutex;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

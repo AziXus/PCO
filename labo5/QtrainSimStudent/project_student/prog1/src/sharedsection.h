@@ -28,8 +28,8 @@ public:
      * @brief SharedSection Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    SharedSection() {
-        // TODO
+    SharedSection() : wait(0), isInSection(false) {
+
     }
 
     /**
@@ -56,7 +56,32 @@ public:
      */
     void getAccess(Locomotive &loco, Priority priority) override {
         // TODO
+        mutex.acquire();
+        if(isInSection){
+            loco.arreter();
+            mutex.release();
 
+            loco.afficherMessage("Waiting to get access");
+            nbTrainWaiting++;
+            wait.acquire();
+            loco.afficherMessage("I restart");
+            loco.demarrer();
+            mutex.acquire();
+            nbTrainWaiting--;
+        }
+        isInSection = true;
+        mutex.release();
+
+        loco.afficherMessage("i'm in");
+
+        if(loco.numero() == 42){
+            diriger_aiguillage(9, TOUT_DROIT, 0);
+            diriger_aiguillage(2, TOUT_DROIT, 0);
+        }
+        if(loco.numero() == 7){
+            diriger_aiguillage(9, DEVIE, 0);
+            diriger_aiguillage(2, DEVIE, 0);
+        }
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
     }
@@ -67,7 +92,15 @@ public:
      * @param loco La locomotive qui quitte la section partagée
      */
     void leave(Locomotive& loco) override {
-        // TODO
+        loco.afficherMessage("i'm out");
+        isInSection = false;
+        mutex.acquire();
+        if(nbTrainWaiting > 0){
+            loco.afficherMessage("Another one can come");
+            wait.release();
+        }
+        mutex.release();
+        loco.afficherMessage("The section is free");
 
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
@@ -77,7 +110,12 @@ public:
 
 private:
     // Méthodes privées ...
-    // Attributes privés ...
+    int aiguillageDebut = 9;
+    int aiguillageFin   = 2;
+    PcoSemaphore wait;
+    PcoSemaphore mutex = PcoSemaphore(1);
+    bool isInSection;
+    int nbTrainWaiting = 0;
 };
 
 
