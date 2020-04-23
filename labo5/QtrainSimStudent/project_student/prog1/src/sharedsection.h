@@ -55,16 +55,19 @@ public:
      * @param priority La priorité de la locomotive qui fait l'appel
      */
     void getAccess(Locomotive &loco, Priority priority) override {
-        // TODO
+        loco.afficherMessage("Début de getAccess");
+
         mutex.acquire();
         if(isInSection){
+            loco.afficherMessage("La section est occupé... Arrêt de la loco.");
             loco.arreter();
+            nbTrainWaiting++;
             mutex.release();
 
-            loco.afficherMessage("Waiting to get access");
-            nbTrainWaiting++;
+            loco.afficherMessage("Attente avant d'accéder à la section.");
             wait.acquire();
-            loco.afficherMessage("I restart");
+
+            loco.afficherMessage("Section libre... Redémarrage de la loco");
             loco.demarrer();
             mutex.acquire();
             nbTrainWaiting--;
@@ -72,17 +75,17 @@ public:
         isInSection = true;
         mutex.release();
 
-        loco.afficherMessage("i'm in");
-
+        loco.afficherMessage("Aiguillage en cours");
         if(loco.numero() == 42){
             diriger_aiguillage(9, TOUT_DROIT, 0);
             diriger_aiguillage(2, TOUT_DROIT, 0);
-        }
-        if(loco.numero() == 7){
+        } else if(loco.numero() == 7){
             diriger_aiguillage(9, DEVIE, 0);
             diriger_aiguillage(2, DEVIE, 0);
         }
+
         // Exemple de message dans la console globale
+        loco.afficherMessage("La loco a accéder à la section");
         afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
     }
 
@@ -92,16 +95,17 @@ public:
      * @param loco La locomotive qui quitte la section partagée
      */
     void leave(Locomotive& loco) override {
-        loco.afficherMessage("i'm out");
-        isInSection = false;
+        loco.afficherMessage("La loco sort de la section");
+
         mutex.acquire();
+        isInSection = false;
         if(nbTrainWaiting > 0){
-            loco.afficherMessage("Another one can come");
+            afficher_message("Une autre loco peut partir");
             wait.release();
         }
         mutex.release();
-        loco.afficherMessage("The section is free");
 
+        loco.afficherMessage("La section est libre");
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
     }

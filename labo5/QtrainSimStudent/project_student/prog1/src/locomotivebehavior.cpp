@@ -24,26 +24,46 @@ void LocomotiveBehavior::run()
     //sharedSection->getAccess(loco);
     //sharedSection->leave(loco);
     int nbTour = 2;
+    int vitesse = loco.vitesse();
 
     while(1) {
-        attendre_contact(contactSectionDepart);
+        // On attend d'atteindre le contact de début de section
+
+        attendreContact(contactFreinage1);
+        loco.fixerVitesse(6);
+
+        attendreContact(contactSectionDepart);
         sharedSection->getAccess(loco, SharedSectionInterface::Priority(loco.priority));
-        attendre_contact(contactSectionFin);
+        loco.fixerVitesse(vitesse);
+
+        // On attend d'atteindre le contact de fin de section
+        attendreContact(contactSectionFin);
         sharedSection->leave(loco);
-        attendre_contact(contactDepart);
+
+        // On attend d'atteindre le contact de départ
+        attendreContact(contactDepart);
         loco.afficherMessage("contact passé");
+
         nbTour--;
         if(nbTour == 0){
-            loco.arreter();
-            loco.inverserSens();
-            loco.demarrer();
-            // Attend que la locomtive repart
-            attendre_contact(contactDepart);
+            inverserDirection();
             std::swap(contactSectionDepart,contactSectionFin);
+            std::swap(contactFreinage1, contactFreinage2);
             nbTour = 2;
-
         }
     }
+}
+
+void LocomotiveBehavior::inverserDirection() {
+    loco.afficherMessage("Changement de direction");
+    loco.arreter();
+    loco.inverserSens();
+    loco.demarrer();
+}
+
+void LocomotiveBehavior::attendreContact(int contact) {
+    loco.afficherMessage(qPrintable(QString("Attente du connecteur %1").arg(contact)));
+    attendre_contact(contact);
 }
 
 void LocomotiveBehavior::printStartMessage()
