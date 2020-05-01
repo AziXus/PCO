@@ -6,6 +6,7 @@ CONFIG += c++17
 LIBS += -lpcosynchro
 
 HEADERS +=  \
+    src/parcours.h \
     src/sharedsectioninterface.h \
     src/locomotive.h \
     src/launchable.h \
@@ -15,4 +16,5 @@ HEADERS +=  \
 SOURCES +=  \
     src/locomotive.cpp \
     src/cppmain.cpp \
-    src/locomotivebehavior.cpp
+    src/locomotivebehavior.cpp \
+    src/parcours.cpp

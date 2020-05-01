@@ -28,7 +28,7 @@ public:
      * @brief SharedSection Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    SharedSection() : wait(0), isInSection(false) {
+    SharedSection() : aiguillageDebut(9), aiguillageFin(2), wait(0), isInSection(false) {
 
     }
 
@@ -77,11 +77,11 @@ public:
 
         loco.afficherMessage("Aiguillage en cours");
         if(loco.numero() == 42){
-            diriger_aiguillage(9, TOUT_DROIT, 0);
-            diriger_aiguillage(2, TOUT_DROIT, 0);
+            diriger_aiguillage(aiguillageDebut, TOUT_DROIT, 0);
+            diriger_aiguillage(aiguillageFin, TOUT_DROIT, 0);
         } else if(loco.numero() == 7){
-            diriger_aiguillage(9, DEVIE, 0);
-            diriger_aiguillage(2, DEVIE, 0);
+            diriger_aiguillage(aiguillageDebut, DEVIE, 0);
+            diriger_aiguillage(aiguillageFin, DEVIE, 0);
         }
 
         // Exemple de message dans la console globale
@@ -114,8 +114,8 @@ public:
 
 private:
     // Méthodes privées ...
-    int aiguillageDebut = 9;
-    int aiguillageFin   = 2;
+    int aiguillageDebut;
+    int aiguillageFin;
     PcoSemaphore wait;
     PcoSemaphore mutex = PcoSemaphore(1);
     bool isInSection;

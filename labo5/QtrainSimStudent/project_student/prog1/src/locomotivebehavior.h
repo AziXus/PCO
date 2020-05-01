@@ -10,6 +10,7 @@
 
 #include "locomotive.h"
 #include "launchable.h"
+#include "parcours.h"
 #include "sharedsectioninterface.h"
 
 #include <pcosynchro/pcosemaphore.h>
@@ -24,14 +25,8 @@ public:
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection, int contactDepart,
-                       int contactSectionDepart, int contactSectionFin, int contactFreinage1, int contactFreinage2) : loco(loco), sharedSection(sharedSection) {
+    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection, Parcours parcours) : loco(loco), sharedSection(sharedSection), parcours(parcours) {
         // Eventuel code supplémentaire du constructeur
-        this->contactDepart = contactDepart;
-        this->contactSectionDepart = contactSectionDepart;
-        this->contactSectionFin = contactSectionFin;
-        this->contactFreinage1 = contactFreinage1;
-        this->contactFreinage2 = contactFreinage2;
     }
 
 protected:
@@ -65,17 +60,15 @@ protected:
      *
      * Par exemple la priorité ou le parcours
      */
+    void inverserSens(){
+        loco.afficherMessage("Changement de direction");
+        loco.arreter();
+        loco.inverserSens();
+        parcours.inverserSens();
+        loco.demarrer();
 
-    void attendreContact(int contact);
-
-    void inverserDirection();
-
-    int contactDepart;
-    int contactSectionDepart;
-    int contactSectionFin;
-    int contactFreinage1;
-    int contactFreinage2;
-    static PcoSemaphore mutex;
+    }
+    Parcours parcours;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

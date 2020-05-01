@@ -8,8 +8,6 @@
 #include "locomotivebehavior.h"
 #include "ctrain_handler.h"
 
-PcoSemaphore LocomotiveBehavior::mutex = PcoSemaphore(1);
-
 void LocomotiveBehavior::run()
 {
     //Initialisation de la locomotive
@@ -24,46 +22,31 @@ void LocomotiveBehavior::run()
     //sharedSection->getAccess(loco);
     //sharedSection->leave(loco);
     int nbTour = 2;
-    int vitesse = loco.vitesse();
+    int numeroContact = 0;
 
     while(1) {
-        // On attend d'atteindre le contact de début de section
-
-        attendreContact(contactFreinage1);
-        loco.fixerVitesse(6);
-
-        attendreContact(contactSectionDepart);
-        sharedSection->getAccess(loco, SharedSectionInterface::Priority(loco.priority));
-        loco.fixerVitesse(vitesse);
-
-        // On attend d'atteindre le contact de fin de section
-        attendreContact(contactSectionFin);
-        sharedSection->leave(loco);
-
-        // On attend d'atteindre le contact de départ
-        attendreContact(contactDepart);
-        loco.afficherMessage("contact passé");
-
-        nbTour--;
-        if(nbTour == 0){
-            inverserDirection();
-            std::swap(contactSectionDepart,contactSectionFin);
-            std::swap(contactFreinage1, contactFreinage2);
-            nbTour = 2;
+        // Prend le contact qui doit être attendu sur le parcours
+        int contactCourant = parcours.getContact(numeroContact);
+        loco.afficherMessage(qPrintable(QString("Attente du connecteur %1").arg(numeroContact)));
+        // Attend le contact
+        attendre_contact(contactCourant);
+        // Une fois le contact passé. Prend le prochain contact sur la liste
+        numeroContact++;
+        // Si le contact courant(qui vient d'être passé) est le contact de départ de la section on effectue un getAccess
+        if(contactCourant == parcours.getContactSectionDepart()){
+            sharedSection->getAccess(loco, SharedSectionInterface::Priority(loco.priority));
+        } else if(contactCourant == parcours.getContactSectionFin()){
+            sharedSection->leave(loco);
+        } else if(contactCourant == parcours.getContactDepart()){
+            loco.afficherMessage("contact de départ passé");
+            nbTour--;
+            if(nbTour == 0){
+                inverserSens();
+                nbTour = 2;
+            }
+            numeroContact = 0;
         }
     }
-}
-
-void LocomotiveBehavior::inverserDirection() {
-    loco.afficherMessage("Changement de direction");
-    loco.arreter();
-    loco.inverserSens();
-    loco.demarrer();
-}
-
-void LocomotiveBehavior::attendreContact(int contact) {
-    loco.afficherMessage(qPrintable(QString("Attente du connecteur %1").arg(contact)));
-    attendre_contact(contact);
 }
 
 void LocomotiveBehavior::printStartMessage()
