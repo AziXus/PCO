@@ -3,7 +3,7 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Nom Prénom, Nom Prénom
+// Auteurs : Müller Robin, Teixeira Carvalho Stéphane
 //
 #ifndef LOCOMOTIVEBEHAVIOR_H
 #define LOCOMOTIVEBEHAVIOR_H
@@ -24,6 +24,9 @@ public:
     /*!
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
+     * \param sharedSection la section partagée entre les locomotives
+     * \param parcours objet Parcours étant le parcours effectuée par la locomotive
+     * \param priority priorité de la locomotive
      */
     LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection, Parcours parcours, SharedSectionInterface::Priority priority)
                        : loco(loco), sharedSection(sharedSection), parcours(parcours), priority(priority) {
@@ -61,9 +64,16 @@ protected:
      *
      * Par exemple la priorité ou le parcours
      */
+public:
+
+protected:
+    /**
+     * @brief inverserSens Permet à la locomotive d'inverser de sens
+     */
     void inverserSens(){
         loco.afficherMessage("Changement de direction");
         loco.arreter();
+        // Inverse le sens de la locomotive et du parcours
         loco.inverserSens();
         parcours.inverserSens();
         loco.demarrer();

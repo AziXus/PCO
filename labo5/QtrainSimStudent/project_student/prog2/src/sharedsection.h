@@ -3,7 +3,7 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Nom Prénom, Nom Prénom
+// Auteurs : Müller Robin, Teixeira Carvalho Stéphane
 //
 #ifndef SHAREDSECTION_H
 #define SHAREDSECTION_H
@@ -15,6 +15,7 @@
 #include "locomotive.h"
 #include "ctrain_handler.h"
 #include "sharedsectioninterface.h"
+#define PRIOUNDEFINED -1
 
 /**
  * @brief La classe SharedSection implémente l'interface SharedSectionInterface qui
@@ -39,12 +40,17 @@ public:
      * @param priority La priorité de la locomotive qui fait l'appel
      */
     void request(Locomotive& loco, Priority priority) override {
+        // Une seule locomotive à la fois peut faire un request
         mutex.acquire();
-        if(numeroPrioLoco == -1){
+        // Si aucune locomotive n'a été definie comme prioritaire(-1) alors la locomotive courante devient prioritaire
+        if(numeroPrioLoco == PRIOUNDEFINED){
             numeroPrioLoco = loco.numero();
             priorityLoco = priority;
+        // Sinon si la priorité de la locomotive courante est plus grande que la locomotive ayant la priorité
+        // redéfinition de la locomotive ayant la priorité
         } else if(priorityLoco < priority){
             numeroPrioLoco = loco.numero();
+            priorityLoco = priority;
         }
         mutex.release();
 
@@ -65,6 +71,8 @@ public:
         loco.afficherMessage("Début de getAccess");
 
         mutex.acquire();
+        // Si une locomotive est dans la section partagées ou que une locomotive est prioritaire
+        // la locomotive attends
         if(isInSection || numeroPrioLoco != loco.numero()){
             loco.afficherMessage("La section est occupé... Arrêt de la loco.");
             loco.arreter();
@@ -79,10 +87,12 @@ public:
             mutex.acquire();
             nbTrainWaiting--;
         }
+        // La locomotive va entrer dans la section partagée
         isInSection = true;
         mutex.release();
 
         loco.afficherMessage("Aiguillage en cours");
+        // Selon l'id de la loco modification de l'aiguillage
         if(loco.numero() == 42){
             diriger_aiguillage(aiguillageDebut, TOUT_DROIT, 0);
             diriger_aiguillage(aiguillageFin, TOUT_DROIT, 0);
@@ -105,13 +115,16 @@ public:
         loco.afficherMessage("La loco sort de la section");
 
         mutex.acquire();
+        // La locomotive sort de la section partagée
         isInSection = false;
+        // Si une locomotive attendait on la relâche
         if(nbTrainWaiting > 0){
             afficher_message("Une autre loco peut partir");
             wait.release();
         }
+        // Si la locomotive prioritaire est passée on remet le numéro de la locomtive à undefined (-1)
         if(loco.numero() == numeroPrioLoco){
-            numeroPrioLoco = -1;
+            numeroPrioLoco = PRIOUNDEFINED;
         }
         mutex.release();
 

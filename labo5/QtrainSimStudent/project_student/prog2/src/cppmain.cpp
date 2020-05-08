@@ -50,7 +50,7 @@ int cmain()
     // Vous devrez utiliser cette fonction pour la section partagée pour aiguiller les locos
     // sur le bon parcours (par exemple à la sortie de la section partagée) vous pouvez l'
     // appeler depuis vos thread des locos par ex.
-    diriger_aiguillage(1,  DEVIE, 0);
+    diriger_aiguillage(1,  DEVIE     , 0);// Modifier pour avoir un aiguillage correct
     diriger_aiguillage(2,  DEVIE     , 0);
     diriger_aiguillage(3,  DEVIE     , 0);
     diriger_aiguillage(4,  TOUT_DROIT, 0);
@@ -59,7 +59,7 @@ int cmain()
     diriger_aiguillage(7,  TOUT_DROIT, 0);
     diriger_aiguillage(8,  DEVIE     , 0);
     diriger_aiguillage(9,  DEVIE     , 0);
-    diriger_aiguillage(10, DEVIE, 0);
+    diriger_aiguillage(10, DEVIE     , 0);// Modifier pour avoir un aiguillage correct
     diriger_aiguillage(11, TOUT_DROIT, 0);
     diriger_aiguillage(12, TOUT_DROIT, 0);
     diriger_aiguillage(13, TOUT_DROIT, 0);
@@ -115,6 +115,7 @@ int cmain()
     locoBehaveA->startThread();
     afficher_message(qPrintable(QString("Lancement thread loco B (numéro %1)").arg(locoB.numero())));
     locoBehaveB->startThread();
+
 
     // Attente sur la fin des threads
     locoBehaveA->join();

@@ -19,14 +19,14 @@ int Parcours::getContactRequest() const
     return contactRequest;
 }
 
-int Parcours::getContactSectionDepart() const
-{
-    return contactSectionDepart;
-}
-
 int Parcours::getContactDepart() const
 {
     return contactDepart;
+}
+
+int Parcours::getContactSectionDepart() const
+{
+    return contactSectionDepart;
 }
 
 int Parcours::getContactSectionFin() const
@@ -34,24 +34,11 @@ int Parcours::getContactSectionFin() const
     return contactSectionFin;
 }
 
-int Parcours::getContactSectionDepartInverse() const
-{
-    return contactSectionDepartInverse;
-}
-
-int Parcours::getContactSectionFinInverse() const
-{
-    return contactSectionFinInverse;
-}
-
-std::vector<int> Parcours::getParcours() const
-{
-    return parcours;
-}
-
 void Parcours::inverserSens()
 {
+    // Inverse toute les valeurs du vecteur sauf le dernier contact qui est le contact de départ du parcours
     std::reverse(parcours.begin(), parcours.end() - 1);
+    // Swap les valeurs des contacts entre les contacts du parcours en sens inverse et normal
     std::swap(contactSectionDepart,contactSectionDepartInverse);
     std::swap(contactSectionFin,contactSectionFinInverse);
     std::swap(contactRequest, contactRequestInverse);
