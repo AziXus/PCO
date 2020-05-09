@@ -82,6 +82,9 @@ public:
             loco.afficherMessage("Attente avant d'accéder à la section.");
             wait.acquire();
 
+            if(stop){
+                return;
+            }
             loco.afficherMessage("Section libre... Redémarrage de la loco");
             loco.demarrer();
             mutex.acquire();
@@ -134,6 +137,9 @@ public:
     }
 
     /* A vous d'ajouter ce qu'il vous faut */
+    void static stopShared(){
+        stop = true;
+    }
 
 private:
     // Méthodes privées ...
@@ -145,7 +151,9 @@ private:
     PcoSemaphore mutex = PcoSemaphore(1);
     bool isInSection;
     int nbTrainWaiting = 0;
+    static bool stop;
 };
 
+bool SharedSection::stop = false;
 
 #endif // SHAREDSECTION_H

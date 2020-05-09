@@ -8,6 +8,8 @@
 #include "locomotivebehavior.h"
 #include "ctrain_handler.h"
 
+bool LocomotiveBehavior::stop = false;
+
 void LocomotiveBehavior::run()
 {
     //Initialisation de la locomotive
@@ -22,8 +24,10 @@ void LocomotiveBehavior::run()
     int numeroContact = 0;
 
     while(1) {
-        if (PcoThread::thisThread()->stopRequested())
+        if (stop){
+            loco.afficherMessage("Je m'arrête");
             return;
+        }
 
         // Prend le contact qui doit être attendu sur le parcours
         int contactCourant = parcours.getContact(numeroContact);

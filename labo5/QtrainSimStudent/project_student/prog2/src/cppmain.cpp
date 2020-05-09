@@ -26,6 +26,8 @@ void emergency_stop()
 {
     locoA.arreter();
     locoB.arreter();
+    LocomotiveBehavior::stopAllBehaviors();
+    SharedSection::stopShared();
 
     afficher_message("\nSTOP!");
 }

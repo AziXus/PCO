@@ -65,6 +65,9 @@ protected:
      * Par exemple la priorité ou le parcours
      */
 public:
+    void static stopAllBehaviors(){
+        stop = true;
+    }
 
 protected:
     /**
@@ -81,6 +84,7 @@ protected:
     }
     Parcours parcours;
     SharedSectionInterface::Priority priority;
+    bool static stop;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H
