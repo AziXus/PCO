@@ -8,6 +8,8 @@
 #include "locomotivebehavior.h"
 #include "ctrain_handler.h"
 
+#define NB_TOURS 2
+
 bool LocomotiveBehavior::stop = false;
 
 void LocomotiveBehavior::run()
@@ -20,7 +22,7 @@ void LocomotiveBehavior::run()
     /* A vous de jouer ! */
 
     // Nombre de tour que la locomotive doit effectuée avant d'inverser de sens
-    int nbTour = 2;
+    int nbTour = NB_TOURS;
     int numeroContact = 0;
 
     while(1) {
@@ -31,33 +33,48 @@ void LocomotiveBehavior::run()
 
         // Prend le contact qui doit être attendu sur le parcours
         int contactCourant = parcours.getContact(numeroContact);
-        loco.afficherMessage(qPrintable(QString("Attente du connecteur %1").arg(numeroContact)));
 
         // Attend le contact courant
-        attendre_contact(contactCourant);
+        attendreContact(contactCourant);
+
         // Une fois le contact passé. Augmente la valeur du numero de contact pour prendre le prochain contact sur la liste
         numeroContact++;
-        // Si le contact courant(qui vient d'être passé) est le contact ou getRequest doit être effectuée on effectue un request
+
+        // Si le contact courant(qui vient d'être passé) est le contact où getRequest doit être effectuée on effectue une request
         if(contactCourant == parcours.getContactRequest()){
             sharedSection->request(loco, priority);
         }
         // Si le contact courant(qui vient d'être passé) est le contact de départ de la section on effectue un getAccess
         else if(contactCourant == parcours.getContactSectionDepart()){
             sharedSection->getAccess(loco, priority);
-        } else if(contactCourant == parcours.getContactSectionFin()){
+        } else if(contactCourant == parcours.getContactSectionFin()){ // Si on sort de la section, on effectue un leave
             sharedSection->leave(loco);
-        } else if(contactCourant == parcours.getContactDepart()){
-            loco.afficherMessage("contact de départ passé");
+        } else if(contactCourant == parcours.getContactDepart()){ // Si on atteint le contact de départ
+            loco.afficherMessage("Contact de départ passé");
             nbTour--;
             // Check si le nombre de tour est égal à 0 pour savoir si les 2 tours ont été effectués
             if(nbTour == 0){
                 inverserSens();
-                nbTour = 2;
+                nbTour = NB_TOURS;
             }
             // Réinitialiser le numero de contact car un nouveau tour débute
             numeroContact = 0;
         }
     }
+}
+
+void LocomotiveBehavior::inverserSens(){
+    loco.afficherMessage("Changement de direction");
+    loco.arreter();
+    // Inverse le sens de la locomotive et du parcours
+    loco.inverserSens();
+    parcours.inverserSens();
+    loco.demarrer();
+}
+
+void LocomotiveBehavior::attendreContact(int numeroContact) {
+    loco.afficherMessage(qPrintable(QString("Attente du connecteur %1").arg(numeroContact)));
+    attendre_contact(numeroContact);
 }
 
 void LocomotiveBehavior::printStartMessage()

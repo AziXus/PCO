@@ -70,18 +70,13 @@ public:
     }
 
 protected:
+    void attendreContact(int numero);
+
     /**
      * @brief inverserSens Permet à la locomotive d'inverser de sens
      */
-    void inverserSens(){
-        loco.afficherMessage("Changement de direction");
-        loco.arreter();
-        // Inverse le sens de la locomotive et du parcours
-        loco.inverserSens();
-        parcours.inverserSens();
-        loco.demarrer();
+    void inverserSens();
 
-    }
     Parcours parcours;
     SharedSectionInterface::Priority priority;
     bool static stop;
