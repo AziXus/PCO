@@ -83,13 +83,10 @@ public:
             wait.acquire(); // Mutex transmis
 
             // Sort de la fonction si un arrêt est demandé
-            mutexStatic.acquire();
             if (stop) {
-                mutexStatic.release();
                 mutex.release();
                 return;
             }
-            mutexStatic.release();
 
             loco.afficherMessage("Redémarrage de la loco.");
             loco.demarrer();
@@ -137,9 +134,7 @@ public:
 
     /* A vous d'ajouter ce qu'il vous faut */
     void static stopShared(){
-        mutexStatic.acquire();
         stop = true;
-        mutexStatic.release();
     }
 
 private:
@@ -166,11 +161,9 @@ private:
     PcoSemaphore mutex = PcoSemaphore(1);
 
     static bool stop;
-    static PcoSemaphore mutexStatic;
 };
 
 // Initialisation des variables statique
 bool SharedSection::stop = false;
-PcoSemaphore SharedSection::mutexStatic = PcoSemaphore(1);
 
 #endif // SHAREDSECTION_H

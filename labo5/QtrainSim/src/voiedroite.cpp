@@ -157,6 +157,9 @@ void VoieDroite::correctionPositionLoco(qreal &x, qreal &y)
     qreal sqrt1 = sqrt((p0.x()-p1.x())*(p0.x()-p1.x())+(p0.y()-p1.y())*(p0.y()-p1.y()));
     qreal sqrt2 = sqrt((p2.x()-p1.x())*(p2.x()-p1.x())+(p2.y()-p1.y())*(p2.y()-p1.y()));
     qreal angleP2P1P0 = add/(sqrt1*sqrt2);
+    if (qIsNaN(angleP2P1P0)) {
+      angleP2P1P0 = 0.0;
+    }
 
     qreal distP1P3 = distP1P0*angleP2P1P0;
     qreal rapport = distP1P3/distP1P2;

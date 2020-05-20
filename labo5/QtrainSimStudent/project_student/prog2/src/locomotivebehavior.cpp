@@ -37,6 +37,11 @@ void LocomotiveBehavior::run()
         // Attend le contact courant
         attendreContact(contactCourant);
 
+        if (stop){
+            loco.afficherMessage("Je m'arrête");
+            return;
+        }
+
         // Une fois le contact passé. Augmente la valeur du numero de contact pour prendre le prochain contact sur la liste
         numeroContact++;
 
