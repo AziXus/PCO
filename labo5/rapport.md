@@ -110,6 +110,47 @@ Afin de valider nos programmes, tous les tests ont été effectués avec et sans
 
 Nous avons tester les 2 programmes de la manière suivante :
 
-### Test programme 1
+### Tests programme 1
 
-### Test programme 2
+#### Vitesse de base (loco 7 - vitesse 10 et loco 42 - vitesse 12)
+Ce test permet de valider les critères de base du programme. Le comportement a été analysé pendant 8 tours et est conforme aux spécifications.
+
+Au premier accès de la section partagée, la loco 7 passe avant la loco 42, car elle est la première à atteindre son connecteur d'accès de section.
+
+La capture d'écran suivante montre l'arrêt de la loco lorsque la section est occupée :
+
+![Test 1.1 \label{my_label}](./images/T1.1.png)
+
+#### Vitesse de base (loco 7 - vitesse 14 et loco 42 - vitesse 16)
+Ce test est une tentative avec une vitesse de locomotive plus élévé que prévu par les limites du système. Ceci nous permet donc de tester un cas limite.
+
+Le test ne passe avec l'inertie activée. En effet, la locomotive prends trop de temps pour s'arrêter et entre dans le section partagée. On peut le voir avec l'arrêt de la loco 42 sur la capture ci-dessous :
+
+![Test 1.2 \label{my_label}](./images/T1.2.png)
+
+Le test avec inertie fonctionne sans problème. Comme ces vitesses sortent des spécifications du système, l'échec de ce test ne pose pas de problème.
+
+### Tests programme 2
+
+#### Test avec priorités standards
+La vitesse de la loco 7 est de 10 et sa priorité est basse. La loco 42 à une vitesse de 12 et une priorité haute.
+
+Lors du test de la partie 1, la loco 7 passe la section partagée avant la loco 42. Cette fois-ci, la 42 devrait passer en premier à cause des priorités. On voit que c'est bien le cas :
+
+![Test 2.1 \label{my_label}](./images/T2.1.png)
+
+Le test a été validé après 8 tours.
+
+#### Test avec deux priorités hautes
+La première locomotive demandant l'accès à la section devrait pouvoir y accéder. Ce test est utilisé pour cela.
+
+Comme expliqué précédemment, la loco 7 effectue ses demandes avant la loco 42 lors du démarrage, la 7 devrait donc passer avant.
+
+On voit sur la capture d'écran suivante que le test passe :
+
+![Test 2.2 \label{my_label}](./images/T2.2.png)
+
+Le test a été continué et validé après 8 tours.
+
+#### Test avec deux priorités basses
+Le comportement de ce test est identique aux priorités hautes donc le test passe.
