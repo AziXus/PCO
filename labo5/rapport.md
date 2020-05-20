@@ -15,7 +15,7 @@ Comme les deux locomotives partgent un tronçon en commun elle devront demander 
 Dans la deuxième partie, il était demandé d'effectuer un second programme sur la base du premier en implémentant cette fois-ci une notion de priorité. Pour cela les locomotives devront effectuées une requête avant de faire la demande d'accès faites dans le premier programme. Ainsi, si la locomotive lors de la demande d'accès n'a pas une plus haute priorité que la locomotive venant de faire une requête d'accès celle-ci se retrouve alors arrêtée et doit attendre que la locomotive de priorité plus haute finisse de passer dans la section partagée avant de pouvoir y entrer.
 
 Le tronçon partagé que nous avons choisi pour les deux programmes est celui tracé en rouge dans l'image ci-dessous:
-![Parcours \label{my_label}](./images/SharedSection_WithPoints.png)
+![Parcours \label{my_label}](./images/SharedSection_WithPoints.PNG)
 
 ## Choix d'implémentation
 
