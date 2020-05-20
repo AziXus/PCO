@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="iso-8859-15" standalone="no"?>
+<classDiagram>
+  <diagramElements defaultViewEntities="ALL" defaultViewEnum="true" defaultViewMethods="TYPE_AND_NAME" defaultVisibleTypes="true" informations="" name="Labo 5 - Parcours">
+    <entity entityType="CLASS" id="20771" isAbstract="false" name="Parcours" visibility="PUBLIC">
+      <attribute const="false" defaultValue="" isStatic="false" name="parcours" type="vector&lt;int&gt;" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactDepart" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactSectionDepart" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactSectionFin" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactSectionDepartInverse" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactSectionFinInverse" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactRequest" type="int" visibility="PRIVATE"/>
+      <attribute const="false" defaultValue="" isStatic="false" name="contactRequestInverse" type="int" visibility="PRIVATE"/>
+      <method is-constructor="true" isAbstract="false" isStatic="false" name="Parcours" returnType="" view="DEFAULT" visibility="PUBLIC">
+        <variable const="false" name="parcours" type="vector&lt;int&gt;"/>
+        <variable const="false" name="contactDepart" type="int"/>
+        <variable const="false" name="contactSectionDepart" type="int"/>
+        <variable const="false" name="contactSectionFin" type="int"/>
+        <variable const="false" name="contactSectionDepartInverse" type="int"/>
+        <variable const="false" name="contactSectionFinInverse" type="int"/>
+        <variable const="false" name="contactRequest" type="int"/>
+        <variable const="false" name="contactRequestInverse" type="int"/>
+      </method>
+      <method isAbstract="false" isStatic="false" name="getContactRequest" returnType="int" view="DEFAULT" visibility="PUBLIC"/>
+      <method isAbstract="false" isStatic="false" name="getContactDepart" returnType="int" view="DEFAULT" visibility="PUBLIC"/>
+      <method isAbstract="false" isStatic="false" name="getContactSectionDepart" returnType="int" view="DEFAULT" visibility="PUBLIC"/>
+      <method isAbstract="false" isStatic="false" name="getContactSectionFin" returnType="int" view="DEFAULT" visibility="PUBLIC"/>
+      <method isAbstract="false" isStatic="false" name="inverserSens" returnType="void" view="DEFAULT" visibility="PUBLIC"/>
+      <method isAbstract="false" isStatic="false" name="getContact" returnType="int" view="DEFAULT" visibility="PUBLIC">
+        <variable const="false" name="numeroContact" type="int"/>
+      </method>
+    </entity>
+  </diagramElements>
+  <umlView grid="10" name="Main view" open="true">
+    <componentView color="-2079" componentID="20771" displayAttributes="true" displayDefault="true" displayMethods="true">
+      <geometry>
+        <x>40</x>
+        <y>110</y>
+        <w>270</w>
+        <h>280</h>
+      </geometry>
+    </componentView>
+  </umlView>
+</classDiagram>
