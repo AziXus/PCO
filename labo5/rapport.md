@@ -111,12 +111,6 @@ Afin de valider nos programmes, tous les tests ont été effectués avec et sans
 Nous avons tester les 2 programmes de la manière suivante :
 
 ### Tests programme 1
-
-<<<<<<< HEAD
-
-
-### Test programme 2
-=======
 #### Vitesse de base (loco 7 - vitesse 10 et loco 42 - vitesse 12)
 Ce test permet de valider les critères de base du programme. Le comportement a été analysé pendant 8 tours et est conforme aux spécifications.
 
@@ -159,4 +153,3 @@ Le test a été continué et validé après 8 tours.
 
 #### Test avec deux priorités basses
 Le comportement de ce test est identique aux priorités hautes donc le test passe.
->>>>>>> 828e639197e69c6c5f3b7d7040e5c3f890bdfa60
