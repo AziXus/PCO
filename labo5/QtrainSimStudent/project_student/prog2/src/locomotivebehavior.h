@@ -65,11 +65,18 @@ protected:
      * Par exemple la priorité ou le parcours
      */
 public:
+    /**
+     * @brief stopAllBehaviors arrête le comportement de la locomotive
+     */
     void static stopAllBehaviors(){
         stop = true;
     }
 
 protected:
+    /**
+     * @brief attendreContact définition d'une fonction attendre contact pour avoir un message de debug
+     * @param numero entier étant le numéro du contact à attendre
+     */
     void attendreContact(int numero);
 
     /**

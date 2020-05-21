@@ -52,14 +52,14 @@ public:
     int getContactSectionFin() const;
 
     /**
-     * @brief inverserSens Permet d'inverser le sens du parcours ainsi que mettre à jour les différents contacts suite à l'inversement
+     * \brief inverserSens Permet d'inverser le sens du parcours ainsi que mettre à jour les différents contacts suite à l'inversement
      */
     void inverserSens();
 
     /**
-     * @brief getContact Permet d'avoir un contact du parcours selon son numéro sur le parcours
-     * @param numeroContact int étant le numéro du contact désiré
-     * @return un int étant le contact à la position du numero de contact donnée
+     * \brief getContact Permet d'avoir un contact du parcours selon son numéro sur le parcours
+     * \param numeroContact int étant le numéro du contact désiré
+     * \return un int étant le contact à la position du numero de contact donnée
      */
     int getContact(int numeroContact) const;
 

@@ -133,6 +133,9 @@ public:
     }
 
     /* A vous d'ajouter ce qu'il vous faut */
+    /**
+     * @brief stopShared permet d'arrêter le fonctionnement de la section partagée
+     */
     void static stopShared(){
         stop = true;
     }
@@ -140,6 +143,10 @@ public:
 private:
     // Méthodes privées ...
 
+    /**
+     * @brief dirigerAiguillage permet de mettre en place l'aiguillage en fonction du numéro de locomotive passé en paramètre
+     * @param numeroLoco entier étant le numéro de la locomotive
+     */
     void dirigerAiguillage(int numeroLoco) {
         afficher_message(qPrintable(QString("Aiguillage de la section pour la loco %1").arg(numeroLoco)));
 
@@ -153,13 +160,19 @@ private:
         }
     }
 
+    // Permet de savoir si une locomtive avec un accès prioritaire a fait une demande
     bool accesPrioritaire;
+    // Permet de savoir si la section est occupée
     bool sectionOccupee;
+    // Permet de savoir si une locomtive est en attente de la libération du tronçon
     bool locoEnAttente;
 
+    // Permet à une locomotive d'attendre la libération de la section partagée
     PcoSemaphore wait;
+    // Verrou permettant d'éviter d'avoir des problèmes de concurrences sur les variables booléene
     PcoSemaphore mutex = PcoSemaphore(1);
 
+    // Permet d'indiquer à la section partagée de d'arrêter
     static bool stop;
 };
 

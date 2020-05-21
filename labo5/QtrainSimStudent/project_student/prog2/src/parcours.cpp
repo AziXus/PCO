@@ -1,3 +1,9 @@
+/**
+  \file parcours.cpp
+  \author Müller Robin, Teixeira Carvalho Stéphane
+  \date 08.05.2020
+  \brief Classe pour permettre de définir le parcours d'une locomotive et les différents contacts important du parcours
+*/
 #include "parcours.h"
 #include <algorithm>
 

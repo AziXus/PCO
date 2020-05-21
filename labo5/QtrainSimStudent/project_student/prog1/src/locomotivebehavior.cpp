@@ -25,12 +25,7 @@ void LocomotiveBehavior::run()
     int nbTour = NB_TOURS;
     int numeroContact = 0;
 
-    while(1) {
-        if (stop){
-            loco.afficherMessage("Je m'arrête");
-            return;
-        }
-
+    while(stop) {
         // Prend le contact qui doit être attendu sur le parcours
         int contactCourant = parcours.getContact(numeroContact);
 
@@ -62,6 +57,7 @@ void LocomotiveBehavior::run()
             numeroContact = 0;
         }
     }
+    loco.afficherMessage("Je m'arrête");
 }
 
 void LocomotiveBehavior::inverserSens(){
