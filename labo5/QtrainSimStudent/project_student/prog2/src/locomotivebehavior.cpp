@@ -25,7 +25,7 @@ void LocomotiveBehavior::run()
     int nbTour = NB_TOURS;
     int numeroContact = 0;
 
-    while(stop) {
+    while(!stop) {
         // Prend le contact qui doit être attendu sur le parcours
         int contactCourant = parcours.getContact(numeroContact);
 
