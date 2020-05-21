@@ -3,18 +3,20 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Nom Prénom, Nom Prénom
+// Auteurs : Müller Robin, Teixeira Carvalho Stéphane
 //
 #ifndef SHAREDSECTION_H
 #define SHAREDSECTION_H
 
 #include <QDebug>
+#include <queue>
 
 #include <pcosynchro/pcosemaphore.h>
 
 #include "locomotive.h"
 #include "ctrain_handler.h"
 #include "sharedsectioninterface.h"
+#define PRIOUNDEFINED -1
 
 /**
  * @brief La classe SharedSection implémente l'interface SharedSectionInterface qui
@@ -28,8 +30,8 @@ public:
      * @brief SharedSection Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    SharedSection() : aiguillageDebut(9), aiguillageFin(2), wait(0), isInSection(false) {
-
+    SharedSection() : sectionOccupee(false),
+        locoEnAttente(false), wait(0) {
     }
 
     /**
@@ -55,38 +57,41 @@ public:
      * @param priority La priorité de la locomotive qui fait l'appel
      */
     void getAccess(Locomotive &loco, Priority priority) override {
-        loco.afficherMessage("Début de getAccess");
+        afficher_message(qPrintable(QString("La loco no. %1 tente d'accéder à la section partagée.").arg(loco.numero())));
+        loco.afficherMessage("Début de getAccess...");
 
         mutex.acquire();
-        if(isInSection){
+
+        // On attend si une locomotive est dans la section partagée ou qu'une
+        // demande d'accès prioritaire a été faite alors que cette loco n'a
+        // pas une priorité haute.
+        if (sectionOccupee) {
             loco.afficherMessage("La section est occupé... Arrêt de la loco.");
             loco.arreter();
-            nbTrainWaiting++;
+            locoEnAttente = true;
             mutex.release();
 
-            loco.afficherMessage("Attente avant d'accéder à la section.");
-            wait.acquire();
+            wait.acquire(); // Mutex transmis
 
-            loco.afficherMessage("Section libre... Redémarrage de la loco");
+            // Sort de la fonction si un arrêt est demandé
+            if (stop) {
+                mutex.release();
+                return;
+            }
+
+            loco.afficherMessage("Redémarrage de la loco.");
             loco.demarrer();
-            mutex.acquire();
-            nbTrainWaiting--;
+            locoEnAttente = false;
         }
-        isInSection = true;
+
+        // On a maintenant obtenu l'accès, on occupe donc la section.
+        sectionOccupee = true;
+
         mutex.release();
 
-        loco.afficherMessage("Aiguillage en cours");
-        if(loco.numero() == 42){
-            diriger_aiguillage(aiguillageDebut, TOUT_DROIT, 0);
-            diriger_aiguillage(aiguillageFin, TOUT_DROIT, 0);
-        } else if(loco.numero() == 7){
-            diriger_aiguillage(aiguillageDebut, DEVIE, 0);
-            diriger_aiguillage(aiguillageFin, DEVIE, 0);
-        }
+        dirigerAiguillage(loco.numero());
 
-        // Exemple de message dans la console globale
         loco.afficherMessage("La loco a accéder à la section");
-        afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
     }
 
     /**
@@ -95,32 +100,56 @@ public:
      * @param loco La locomotive qui quitte la section partagée
      */
     void leave(Locomotive& loco) override {
-        loco.afficherMessage("La loco sort de la section");
+        afficher_message(qPrintable(QString("La loco no. %1 quitte la section partagée.").arg(loco.numero())));
+        loco.afficherMessage("Début de leave...");
 
         mutex.acquire();
-        isInSection = false;
-        if(nbTrainWaiting > 0){
-            afficher_message("Une autre loco peut partir");
+        // La locomotive sort de la section partagée
+        sectionOccupee = false;
+
+        // Si une locomotive attendait on la relâche
+        if(locoEnAttente){
+            afficher_message("La loco en attente peut démarrer");
             wait.release();
+        } else {
+            mutex.release();
         }
-        mutex.release();
 
         loco.afficherMessage("La section est libre");
-        // Exemple de message dans la console globale
-        afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
+        loco.afficherMessage("Fin de leave...");
     }
 
     /* A vous d'ajouter ce qu'il vous faut */
+    void static stopShared(){
+        stop = true;
+    }
 
 private:
     // Méthodes privées ...
-    int aiguillageDebut;
-    int aiguillageFin;
+
+    void dirigerAiguillage(int numeroLoco) {
+        afficher_message(qPrintable(QString("Aiguillage de la section pour la loco %1").arg(numeroLoco)));
+
+        // Selon l'id de la loco modification de l'aiguillage dans une certaine direction
+        if(numeroLoco == 42){
+            diriger_aiguillage(9, TOUT_DROIT, 0);
+            diriger_aiguillage(2, TOUT_DROIT, 0);
+        } else if(numeroLoco == 7){
+            diriger_aiguillage(9, DEVIE, 0);
+            diriger_aiguillage(2, DEVIE, 0);
+        }
+    }
+
+    bool sectionOccupee;
+    bool locoEnAttente;
+
     PcoSemaphore wait;
     PcoSemaphore mutex = PcoSemaphore(1);
-    bool isInSection;
-    int nbTrainWaiting = 0;
+
+    static bool stop;
 };
 
+// Initialisation des variables statique
+bool SharedSection::stop = false;
 
 #endif // SHAREDSECTION_H
