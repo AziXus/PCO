@@ -6,16 +6,18 @@ Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 
 Lors de ce laboratoire, il nous a été demandé d'implémenter de la gestion de ressources entre thread à l'aide de sémaphore dans une application de simulation de parcours de locomotive.  
 
-Cela était nécessaire car, les locomotives font chacunes un parcours circulaire et il était demandé qu'un tronçon soit le même pour les 2 locomotives de la simulation, nous appelerons cela la section partagée. Comme les locomotives ne pouvant pas être en même temps sur ce tronçon, elles devront se partager la ressource.
+Cela était nécessaire car les locomotives font chacunes un parcours circulaire et il était demandé qu'un tronçon soit le même pour les 2 locomotives de la simulation, nous appelerons cela la section partagée. Comme les locomotives ne peuvent pas être en même temps sur ce tronçon, elles devront se partager la ressource.
 
-Pour le premier programme, nous devons faire rouler les locomotives pendant 2 tours dans un sens puis lors du deuxième tour celle-ci doivent repartir dans le sens inverse et effectuer à nouveau deux tours pour rechanger de sens et cela à l'infine.
+Pour le premier programme, nous devons faire rouler les locomotives pendant 2 tours dans un sens puis lors du deuxième tour celle-ci doivent repartir dans le sens inverse pour ensuite effectuer à nouveau deux tours pour rechanger de sens et cela à l'infine.
 
-Comme les deux locomotives partagent un tronçon en commun, elles devront demander l'accès au tronçon avant d'arriver dans celui-ci. Si une locomotive est déjà dans le tronçon la locomotive ayant fait la demande d'accès s'arrête et attend que le tronçon soit libre. Sinon, elle rentre dans la section et la section se retrouve alors fermé tant que celle-ci se trouve à l'intérieur.
+Comme les deux locomotives partagent un tronçon en commun, elles devront demander l'accès au tronçon avant d'arriver dans celui-ci. Si une locomotive est déjà dans le tronçon la locomotive ayant fait la demande d'accès s'arrête et attend que le tronçon soit libre(locomotive dans le tronçon en sort). Sinon, elle rentre dans la section et la section se retrouve alors fermée tant que celle-ci se trouve à l'intérieur.
 
-Dans la deuxième partie, il était demandé d'effectuer un second programme sur la base du premier en implémentant cette fois-ci une notion de priorité. Pour cela les locomotives devront effectuées une requête avant de faire la demande d'accès faites dans le premier programme. Ainsi, si la locomotive lors de la demande d'accès n'a pas une plus haute priorité que la locomotive venant de faire une requête d'accès celle-ci se retrouve alors arrêtée et doit attendre que la locomotive de priorité plus haute finisse de passer dans la section partagée avant de pouvoir y entrer.
+Dans la deuxième partie, il était demandé d'effectuer un second programme sur la base du premier en implémentant cette fois-ci une notion de priorité. Pour cela les locomotives devront effectuées une requête avant de faire la demande d'accès implémentée dans le premier programme. Ainsi, si la locomotive lors de la demande d'accès à une priorié plus basse qu'une locmotive venant d'effectuer une requête d'accès. Elle se retrouve alors arrêtée et doit attendre que la locomotive de priorité plus haute finisse de passer dans la section partagée avant de pouvoir y entrer.
 
 Le tronçon partagé que nous avons choisi pour les deux programmes est celui tracé en rouge dans l'image ci-dessous:
 ![Parcours \label{my_label}](./images/SharedSection_WithPoints.PNG)
+
+Les différents contacts utiisler par notre programme pour définir les actions a effectués osnt accompagnés d'une légende.
 
 ## Choix d'implémentation
 
@@ -29,13 +31,13 @@ Sur le schéma nous pouvons voir qu'une `locomotive` démarre en initialisant 2 
 
 La `locomotive` va ensuite effectuer son parcours tant que son comportement ne doit pas être stoppé. S'il est stoppé le thread se termine. Attention, si on demande un arrêt lors de l'attente du contact, le thread ne se termine pas correctement.
 
-Si le stop n'est pas actif la `locomotive` va tout d'abord prendre le contact désiré de la liste et attendre que celui-ci soit atteint. Une fois le contact passé la variable avec le numéro de contact sera incrémentée pour prendre le contact suivant dans la liste lors de la prochaine itération.
+Si le stop n'est pas actif la `locomotive` va tout d'abord prendre le contact désiré de la liste et attendre que celui-ci soit atteint. Une fois le contact passé la variable avec le numéro de contact sera incrémentée pour prendre le contact suivant dans la liste pour la prochaine itération.
 
-Nous effectuons ensuite plusieurs tests pour savoir si le contact passé est un contact pour lequel une action doit être effectuée. Les 3 premiers tests permettent d'appeler les fonctions de la section partagée(Dans l'ordre `request`, `getAccess` et `leave`).
+Nous effectuons ensuite plusieurs tests pour savoir si le contact passé est un contact pour lequel une action doit être effectuée. Les 3 premiers tests permettent d'appeler les fonctions de la section partagée(Dans l'ordre  des tests `request`, `getAccess` et `leave`).
 
-Le dernier test permet de savoir si un tour a été effectué par la `locomotive`. Si cela est le cas on va décrementer le nombre de tour et si celui-ci se retrouve à 0 nous allons inverser le sens du parcours ainsi que celui de la `locomotive`. Puis, Le nombre de tour sera alors remis à deux et le numéro de contact remis à zéro. Sinon, si le nombre de tour est différent de 0, nous allons simplement réinitialiser la variable des numéro de contact du parcours car dans tout les cas le parcours sera recommencé.
+Le dernier test permet de savoir si un tour a été effectué par la `locomotive`. Si cela est le cas on va décrementer le nombre de tour et si celui-ci se retrouve à 0 nous allons inverser le sens du parcours(liste de contact doit être inversée) ainsi que celui de la `locomotive`. Puis, Le nombre de tour sera alors remis à deux et le numéro de contact remis à zéro. Sinon, si le nombre de tour est différent de 0, nous allons simplement réinitialiser la variable des numéro de contact du parcours car dans tout les cas le parcours sera recommencé.
 
-Lors de la conception du programme nous nous sommes rendus compte qu'il serait intéressant d'ajouter une classe supplémentaire se nommant `Parcours`. Elle nous permet d'avoir tous les contacts qu'une locomotives doit passer ainsi que les contacts importants lors du tour effectué.
+Lors de la conception du programme nous nous sommes rendus compte qu'il serait intéressant d'ajouter une classe supplémentaire se nommant `Parcours`. Elle nous permet d'avoir tous les contacts qu'une locomotive doit passer ainsi que les contacts importants lors du tour effectué.
 
 Voici un schéma UML de notre classe Parcours :
 
@@ -58,8 +60,8 @@ void Parcours::inverserSens()
  Ces contacts sont les contacts :
  1. Où la requête doit être effectuée
  2. Où la demande d'accès doit être effectuée
- 3. Sortie de la section partagée
- 4. Celui du contact indiquant la fin d'un tour
+ 3. Oû la locomtive sort de la section partagée
+ 4. Indiquant la fin d'un tour
 
 Ainsi, si nous reprenons le flowchart du comportement d'une locomotive lorsque nous allons tester les actions à faire selon le contact passé, nous allons simplement faire appel aux getteurs de la classe Parcours. Il va de soit que la classe `LocomotiveBehavior` aura alors un objet Parcours en tant qu'attribut pour appeler ces getteurs.
 
@@ -87,14 +89,15 @@ Elle sera mise à `true` lors d'un getRequest d'une locomotive ayant une priorit
 
 Nous avons ensuite défini un booléean `sectionOccupee` qui va permettre de savoir si une locomotive se trouve sur le tronçon partagée car si cela est le cas la variable sera à `true` et toutes les locomotives qui essayeront d'entrer dans la section seront alors en mise en attente. Cette variable sera alors remis à `false` lorsque la locomotive se trouvant dans le tronçon en sort.
 
-Une troisième variable booléenne se nommant `locoEnAttente` va permettre au programme se savoir si une locomotive a été mise en attente la variablesera mise a `true` dans ce cas là. Pour rappel, une locomotive est mise en attente si le tronçon est occupée ou que une locomotive de priorité supérieur a demandée accès au tronçon. Ainsi lorsque la locomotive qui était dans le tronçon en sort elle saura si elle doit relâche une locomotive ou non.
+Une troisième variable booléenne se nommant `locoEnAttente` va permettre au programme de savoir si une locomotive a été mise en attente la variable sera mise a `true` dans ce cas là. Pour rappel, une locomotive est mise en attente si le tronçon est occupée ou que une locomotive de priorité supérieur a demandée accès au tronçon. Ainsi lorsque la locomotive qui était dans le tronçon en sort elle saura si elle doit relâcher une locomotive ou non.
 
-Nous avons pu mettre en place cette variable booléenne car il nous a été demandé de faire une implémentation pour les 2 locomotives qui nous étaient données et non pas une implémentation pour N locomotives car dans sinon cette variable aurait dû être remplacé par un int
+Nous avons pu mettre en place cette variable booléenne car il nous a été demandé de faire une implémentation pour les 2 locomotives qui nous étaient données et non pas une implémentation pour N locomotives car sinon cette variable aurait dû être remplacé par un entier.
 
 Ensuite la sémaphore `wait` va permettre aux locomotives d'attendre(`acquire`) ou de libérer(`release`) la section partagée.  
+
 Un `mutex` a été défini car les threads devront se partagées des variables et nous devons donc mettre en place de l'exclusion mutuelle pour éviter d'avoir des problèmes de concurrences.
 
-La variable statique booléenne `stop` va nous permettre d'indiquer depuis le main à la section partagée de se terminer et donc de ne plus prendre de locomotive dans le tronçon.
+La variable statique booléenne `stop` va nous permettre d'indiquer(depuis le main) à la section partagée de se terminer et donc de ne plus prendre de locomotive dans le tronçon.
 
 Nous avons également créer la même variable statique `stop` dans le `LocomotiveBehavior` pour permettre au main d'arrêter le comportement des locomotives.
 
@@ -123,7 +126,7 @@ La capture d'écran suivante montre l'arrêt de la loco lorsque la section est o
 #### Vitesse de base (loco 7 - vitesse 14 et loco 42 - vitesse 16)
 Ce test est une tentative avec une vitesse de locomotive plus élévé que prévu par les limites du système. Ceci nous permet donc de tester un cas limite.
 
-Le test ne passe avec l'inertie activée. En effet, la locomotive prends trop de temps pour s'arrêter et entre dans le section partagée. On peut le voir avec l'arrêt de la loco 42 sur la capture ci-dessous :
+Le test ne passe pas avec l'inertie activée. En effet, la locomotive prends trop de temps pour s'arrêter et entre dans le section partagée. On peut le voir avec l'arrêt de la loco 42 sur la capture ci-dessous :
 
 ![Test 1.2 \label{my_label}](./images/T1.2.png)
 
