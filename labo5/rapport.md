@@ -132,6 +132,33 @@ Le test ne passe pas avec l'inertie activée. En effet, la locomotive prends tro
 
 Le test avec inertie fonctionne sans problème. Comme ces vitesses sortent des spécifications du système, l'échec de ce test ne pose pas de problème.
 
+#### Arrêt d'urgence après `attendre_contact`
+Ce test de l'arrêt d'urgence valide la terminaison de threads après un appel de `attendre_contact` .  
+L'arrêt d'urgence à été lancé au moment de la capture suivante :
+
+![Test 1.3 \label{my_label}](./images/T1.3_1.png)
+
+La locomotive 42 attend le contact numéro 19 (qui est utilisé pour l'appel à la fonction `getAccess`).  
+La loco devrait donc s'arrêter après le contact 19 (à cause de l'inertie) puis stopper son thread sans appeler la fonction `getAccess`.
+
+![Test 1.3 \label{my_label}](./images/T1.3_2.png)
+
+On voit donc que la fonction getAccess n'est pas appelée et que le thread se termine.
+`[STOP] Thread de la loco 42 a terminé correctement`.
+
+Le test est donc validé. Même si une loco est redémarrée après un arrêt d'urgence, elle ne fera aucune action.
+
+#### Arrêt d'urgence lors de l'attente de la section partagée
+Afin de vérifier que la locomotive s'arrête également après une attente à la section partagée, nous avons demandé l'arrêt d'urgence dans cette situation :
+
+![Test 1.4 \label{my_label}](./images/T1.4_1.png)
+
+La loco 7 appelle la fonction `leave` puis un arrêt d'urgence est demandé. On veut donc que la loco 42 s'arrête immédiatement une fois libérée.
+
+![Test 1.4 \label{my_label}](./images/T1.4_2.png)
+
+Comme le comportement est celui voulu, ce test passe également..
+
 ### Tests programme 2
 
 #### Test avec priorités standards
@@ -156,3 +183,6 @@ Le test a été continué et validé après 8 tours.
 
 #### Test avec deux priorités basses
 Le comportement de ce test est identique aux priorités hautes donc le test passe.
+
+#### Test de l'arrêt d'urgence
+Le résultat ainsi que le protocole est identique au point 1.
