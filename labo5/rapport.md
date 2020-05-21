@@ -15,17 +15,19 @@ Comme les deux locomotives partagent un tronçon en commun, elles devront demand
 Dans la deuxième partie, il était demandé d'effectuer un second programme sur la base du premier en implémentant cette fois-ci une notion de priorité. Pour cela les locomotives devront effectuées une requête avant de faire la demande d'accès implémentée dans le premier programme. Ainsi, si la locomotive lors de la demande d'accès à une priorié plus basse qu'une locmotive venant d'effectuer une requête d'accès. Elle se retrouve alors arrêtée et doit attendre que la locomotive de priorité plus haute finisse de passer dans la section partagée avant de pouvoir y entrer.
 
 Le tronçon partagé que nous avons choisi pour les deux programmes est celui tracé en rouge dans l'image ci-dessous:
-![Parcours \label{my_label}](./images/SharedSection_WithPoints.PNG)
+<img alt="Parcours" src="./images/SharedSection_WithPoints.PNG" width="250" height="250" >
 
-Les différents contacts utiisler par notre programme pour définir les actions a effectués osnt accompagnés d'une légende.
+Les différents contacts utilisés par notre programme pour définir les actions à effectuer sont accompagnées d'une légende.
 
 ## Choix d'implémentation
 
 En prenant en compte les fonctionnalités que le problème expliqué ci-dessus comporte, voici comment nous avons implémenté la solution.
 
+<div style="page-break-after: always;"></div>
+
 Dans un premier temps nous avons décidé de schématiser le comportement des locomotives. Voici le flowchart expliquant le fonctionnement.
 
-![Comportement programme \label{my_label}](./images/Behaviors.png)
+<img alt="Comportement programme" src="./images/Behaviors.png" width="300" height="870" >
 
 Sur le schéma nous pouvons voir qu'une `locomotive` démarre en initialisant 2 variables : le nombre de tour que la locomotive doit effectuer avant d'inverser de sens et le numéro du contact que nous désirons sur le parcours(un parcours sera une liste de contact  et donc il nous faut un index pour parcourir la liste).
 
@@ -41,7 +43,7 @@ Lors de la conception du programme nous nous sommes rendus compte qu'il serait i
 
 Voici un schéma UML de notre classe Parcours :
 
-![UML Parcours \label{my_label}](./images/UML.png)
+<img alt="UML Parcours" src="./images/UML.png" width="184" height="194" >  
 
 Comme indiqué auparavant cette classe permet de définir toutes les spécificités d'un parcours effectué par une locomotive. Le constructeur de cette classe initialise tous les attributs privés. Nous définissons également tous les contacts spéciaux pour le parcours inverse car les contacts sont différents et ainsi il est plus simple pour nous d'échanger les valeurs lorsqu'il y a un changement de sens. Il nous suffit de faire un swap entre les valeurs.
 
@@ -56,6 +58,9 @@ void Parcours::inverserSens()
     std::swap(contactRequest, contactRequestInverse);
 }
 ```
+
+<div style="page-break-after: always;"></div>
+
  La classe propose également des getteurs pour les différents contacts importants lors du parcours.  
  Ces contacts sont les contacts :
  1. Où la requête doit être effectuée
@@ -121,14 +126,16 @@ Au premier accès de la section partagée, la loco 7 passe avant la loco 42, car
 
 La capture d'écran suivante montre l'arrêt de la loco lorsque la section est occupée :
 
-![Test 1.1 \label{my_label}](./images/T1.1.png)
+<img alt="Test 1.1" src="./images/T1.1.png" width="326" height="200" >  
+
+<div style="page-break-after: always;"></div>
 
 #### Vitesse de base (loco 7 - vitesse 14 et loco 42 - vitesse 16)
 Ce test est une tentative avec une vitesse de locomotive plus élévé que prévu par les limites du système. Ceci nous permet donc de tester un cas limite.
 
 Le test ne passe pas avec l'inertie activée. En effet, la locomotive prends trop de temps pour s'arrêter et entre dans le section partagée. On peut le voir avec l'arrêt de la loco 42 sur la capture ci-dessous :
 
-![Test 1.2 \label{my_label}](./images/T1.2.png)
+<img alt="Test 1.2" src="./images/T1.2.png" width="275" height="253" >
 
 Le test avec inertie fonctionne sans problème. Comme ces vitesses sortent des spécifications du système, l'échec de ce test ne pose pas de problème.
 
@@ -136,12 +143,12 @@ Le test avec inertie fonctionne sans problème. Comme ces vitesses sortent des s
 Ce test de l'arrêt d'urgence valide la terminaison de threads après un appel de `attendre_contact` .  
 L'arrêt d'urgence à été lancé au moment de la capture suivante :
 
-![Test 1.3 \label{my_label}](./images/T1.3_1.png)
+<img alt="Test 1.3" src="./images/T1.3_1.png" width="228" height="242" >
 
 La locomotive 42 attend le contact numéro 19 (qui est utilisé pour l'appel à la fonction `getAccess`).  
 La loco devrait donc s'arrêter après le contact 19 (à cause de l'inertie) puis stopper son thread sans appeler la fonction `getAccess`.
 
-![Test 1.3 \label{my_label}](./images/T1.3_2.png)
+<img alt="Test 1.3" src="./images/T1.3_2.png" width="353" height="244" >
 
 On voit donc que la fonction getAccess n'est pas appelée et que le thread se termine.
 `[STOP] Thread de la loco 42 a terminé correctement`.
@@ -151,11 +158,11 @@ Le test est donc validé. Même si une loco est redémarrée après un arrêt d'
 #### Arrêt d'urgence lors de l'attente de la section partagée
 Afin de vérifier que la locomotive s'arrête également après une attente à la section partagée, nous avons demandé l'arrêt d'urgence dans cette situation :
 
-![Test 1.4 \label{my_label}](./images/T1.4_1.png)
+<img alt="Test 1.4" src="./images/T1.4_1.png" width="225" height="240" >
 
 La loco 7 appelle la fonction `leave` puis un arrêt d'urgence est demandé. On veut donc que la loco 42 s'arrête immédiatement une fois libérée.
 
-![Test 1.4 \label{my_label}](./images/T1.4_2.png)
+<img alt="Test 1.4" src="./images/T1.4_2.png" width="326" height="190" >
 
 Comme le comportement est celui voulu, ce test passe également..
 
@@ -166,7 +173,7 @@ La vitesse de la loco 7 est de 10 et sa priorité est basse. La loco 42 à une v
 
 Lors du test de la partie 1, la loco 7 passe la section partagée avant la loco 42. Cette fois-ci, la 42 devrait passer en premier à cause des priorités. On voit que c'est bien le cas :
 
-![Test 2.1 \label{my_label}](./images/T2.1.png)
+<img alt="Test 2.1" src="./images/T2.1.png" width="243" height="244" >
 
 Le test a été validé après 8 tours.
 
@@ -177,7 +184,7 @@ Comme expliqué précédemment, la loco 7 effectue ses demandes avant la loco 42
 
 On voit sur la capture d'écran suivante que le test passe :
 
-![Test 2.2 \label{my_label}](./images/T2.2.png)
+<img alt="Test 2.2" src="./images/T2.2.png" width="242" height="244" >
 
 Le test a été continué et validé après 8 tours.
 
