@@ -87,7 +87,6 @@ PcoSemaphore wait;
 PcoSemaphore mutex = PcoSemaphore(1);
 
 static bool stop;
-static PcoSemaphore mutexStatic;
 ```
 Le booléean `accesPrioritaire` va nous permettre de savoir si une locomotive avec un accès prioritaire a demandé accès au tronçon.  
 Elle sera mise à `true` lors d'un getRequest d'une locomotive ayant une priorité élevée(HighPriority) et ensuite à false quand une locomotive de haute priorité quitte(`leave`) la section partagée.
