@@ -17,6 +17,7 @@
 // Ajoutez les includes dont vous avez besoin ici
 
 #include <memory>
+#include <map>
 
 #include "pcosynchro/pcohoaremonitor.h"
 
@@ -197,6 +198,16 @@ private:
     inline void throwStopException() {throw StopException();}
 
     int nextId = 0;
+
+
+    Condition resultsEmpty;
+    Condition resultsMinId;
+    std::vector<Condition> conditionsFull;
+    std::vector<Condition> conditionsEmpty;
+    std::vector<std::queue<int>> computation;
+    std::map<int, Computation> computations;
+    std::map<int, Result> results;
+    int minId;
 };
 
 #endif // COMPUTATIONMANAGER_H

@@ -12,16 +12,24 @@
 // afin de faire attendre les threads appelants et aussi afin que le code compile.
 
 #include "computationmanager.h"
+#include <iostream>
 
 
-ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize)
-{
-    // TODO
+ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3), computation(3) {
+    minId = 0;
 }
 
 int ComputationManager::requestComputation(Computation c) {
-    // TODO
-    return -1;
+    monitorIn();
+    while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        wait(conditionsFull[(int)c.computationType]);
+    }
+    int id = nextId++;
+    computations.insert(std::make_pair(id, c));
+    computation[(int)c.computationType].push(id);
+    signal(conditionsEmpty[(int)c.computationType]);
+    monitorOut();
+    return id;
 }
 
 void ComputationManager::abortComputation(int id) {
@@ -34,11 +42,20 @@ Result ComputationManager::getNextResult() {
 
     // Filled with some code in order to make the thread in the UI wait
     monitorIn();
-    auto c = Condition();
-    wait(c);
+    if(results.size() == 0){
+        std::cout << "Blocking empty" << std::endl;
+        wait(resultsEmpty);
+    }
+    while(results.begin()->first != minId){
+        std::cout << "Blocking min" << std::endl;
+        wait(resultsMinId);
+    }
+    minId++;
+    Result result = results.begin()->second;
+    results.erase(results.begin());
     monitorOut();
 
-    return Result(-1, 0.0);
+    return result;
 }
 
 Request ComputationManager::getWork(ComputationType computationType) {
@@ -47,11 +64,20 @@ Request ComputationManager::getWork(ComputationType computationType) {
 
     // Filled with arbitrary code in order to make the callers wait
     monitorIn();
-    auto c = Condition();
-    wait(c);
+    int id;
+    if(computation[(int)computationType].size() == 0){
+        std::cout << "Waiting because empty " << (int)computationType << std::endl;
+        wait(conditionsEmpty[(int)computationType]);
+    }
+    id = computation[(int)computationType].front();
+    computation[(int)computationType].pop();
+    auto itComputation = computations.find(id);
+    Request request = Request(itComputation->second, id);
+    computations.erase(itComputation);
+    signal(conditionsFull[(int)computationType]);
+    std::cout << "Going out " << (int)computationType << std::endl;
     monitorOut();
-
-    return Request(Computation(computationType), -1);
+    return request;
 }
 
 bool ComputationManager::continueWork(int id) {
@@ -60,7 +86,19 @@ bool ComputationManager::continueWork(int id) {
 }
 
 void ComputationManager::provideResult(Result result) {
-    // TODO
+    monitorIn();
+    std::cout << "Providing result" << std::endl;
+    results.insert(std::make_pair(result.getId(), result));
+    // A cause du fait que le thread reveille prend la main
+    if(results.size() == 1){
+        std::cout << "Sending empty" << std::endl;
+        signal(resultsEmpty);
+    }
+    if(results.begin()->first == minId){
+        std::cout << "Sending min" << std::endl;
+        signal(resultsMinId);
+    }
+    monitorOut();
 }
 
 void ComputationManager::stop() {
