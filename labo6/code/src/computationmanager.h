@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <map>
+#include <set>
 
 #include "pcosynchro/pcohoaremonitor.h"
 
@@ -185,11 +186,24 @@ protected:
 
     // Ajoutez vos attributs et déclarations de méthodes ici
     // P.ex. variables conditions et structure de données pour le buffer
+    void waitCheckStop(Condition &c);
+    void checkStop();
 
     // Queues
     const size_t MAX_TOLERATED_QUEUE_SIZE;
 
     bool stopped = false;
+
+    Condition resultsEmpty;
+    Condition resultsMinId;
+    std::vector<Condition> conditionsFull;
+    std::vector<Condition> conditionsEmpty;
+    std::vector<std::deque<int>> computation;
+    std::map<int, Computation> computations;
+    std::map<int, Result> results;
+    std::set<int> abortedId;
+    int minId;
+
 
 private:
     /**
@@ -198,16 +212,6 @@ private:
     inline void throwStopException() {throw StopException();}
 
     int nextId = 0;
-
-
-    Condition resultsEmpty;
-    Condition resultsMinId;
-    std::vector<Condition> conditionsFull;
-    std::vector<Condition> conditionsEmpty;
-    std::vector<std::queue<int>> computation;
-    std::map<int, Computation> computations;
-    std::map<int, Result> results;
-    int minId;
 };
 
 #endif // COMPUTATIONMANAGER_H

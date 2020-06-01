@@ -13,6 +13,7 @@
 
 #include "computationmanager.h"
 #include <iostream>
+#include <algorithm>
 
 
 ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3), computation(3) {
@@ -22,39 +23,63 @@ ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SI
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
     while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
-        wait(conditionsFull[(int)c.computationType]);
+        waitCheckStop(conditionsFull[(int)c.computationType]);
     }
     int id = nextId++;
     computations.insert(std::make_pair(id, c));
-    computation[(int)c.computationType].push(id);
+    computation[(int)c.computationType].push_back(id);
     signal(conditionsEmpty[(int)c.computationType]);
     monitorOut();
+    checkStop();
     return id;
 }
 
 void ComputationManager::abortComputation(int id) {
-    // TODO
+    monitorIn();
+    // Effacer de la liste des computations
+    auto itComputation = computations.find(id);
+    // Effacer de la liste des résultat
+    auto itResult = results.find(id);
+    if(itComputation != computations.end()){
+        auto it = std::find(computation[(int)itComputation->second.computationType].begin(), computation[(int)itComputation->second.computationType].end(), id);
+        computation[(int)itComputation->second.computationType].erase(it);
+        if(computation[(int)itComputation->second.computationType].size() + 1 == MAX_TOLERATED_QUEUE_SIZE){
+            signal(conditionsFull[(int)itComputation->second.computationType]);
+        }
+        computations.erase(itComputation);
+    } else if(itResult != results.end()){
+        if(itResult->first == minId){
+            minId++;
+            if(results.begin()->first == minId)
+                signal(resultsMinId);
+        }
+        results.erase(itResult);
+        return;
+    } else if(id < nextId || id >= minId){
+        // Evite d'ajouter de id invalide
+        abortedId.insert(id);
+    }
+    monitorOut();
+    checkStop();
 }
 
 Result ComputationManager::getNextResult() {
-    // TODO
     // Replace all of the code below by your code
 
     // Filled with some code in order to make the thread in the UI wait
     monitorIn();
     if(results.size() == 0){
         std::cout << "Blocking empty" << std::endl;
-        wait(resultsEmpty);
+        waitCheckStop(resultsEmpty);
     }
-    while(results.begin()->first != minId){
+    while(results.begin()->first != minId && !stopped){
         std::cout << "Blocking min" << std::endl;
-        wait(resultsMinId);
+        waitCheckStop(resultsMinId);
     }
     minId++;
     Result result = results.begin()->second;
     results.erase(results.begin());
     monitorOut();
-
     return result;
 }
 
@@ -67,10 +92,10 @@ Request ComputationManager::getWork(ComputationType computationType) {
     int id;
     if(computation[(int)computationType].size() == 0){
         std::cout << "Waiting because empty " << (int)computationType << std::endl;
-        wait(conditionsEmpty[(int)computationType]);
+        waitCheckStop(conditionsEmpty[(int)computationType]);
     }
     id = computation[(int)computationType].front();
-    computation[(int)computationType].pop();
+    computation[(int)computationType].pop_front();
     auto itComputation = computations.find(id);
     Request request = Request(itComputation->second, id);
     computations.erase(itComputation);
@@ -81,8 +106,11 @@ Request ComputationManager::getWork(ComputationType computationType) {
 }
 
 bool ComputationManager::continueWork(int id) {
-    // TODO
-    return false;
+    bool work;
+    monitorIn();
+    work = abortedId.find(id) == abortedId.end() && !stopped;
+    monitorOut();
+    return work;
 }
 
 void ComputationManager::provideResult(Result result) {
@@ -101,6 +129,27 @@ void ComputationManager::provideResult(Result result) {
     monitorOut();
 }
 
+void ComputationManager::waitCheckStop(Condition &c){
+    checkStop();
+    wait(c);
+    checkStop();
+}
+
+void ComputationManager::checkStop(){
+    if(stopped){
+        monitorOut();
+        throwStopException();
+    }
+}
+
 void ComputationManager::stop() {
-    // TODO
+    stopped = true;
+    monitorIn();
+    signal(resultsEmpty);
+    signal(resultsMinId);
+    for(Condition &c : conditionsFull)
+        signal(c);
+    for(Condition &c : conditionsEmpty)
+        signal(c);
+    monitorOut();
 }
