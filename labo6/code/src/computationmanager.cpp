@@ -68,19 +68,21 @@ void ComputationManager::abortComputation(int id) {
 }
 
 Result ComputationManager::getNextResult() {
-    // Replace all of the code below by your code
-
-    // Filled with some code in order to make the thread in the UI wait
     monitorIn();
+    // Si le taille de la map result est égal à 0 cela signifie qu'elle est vide donc attente
     if(results.size() == 0){
         std::cout << "Blocking empty" << std::endl;
         waitCheckStop(resultsEmpty);
     }
+    // Si l'id qui se trouve en premier sur la map n'est pas équiavalent à l'id attendu on attend
+    // Nous pouvons vérifier avec .begin car les id serotn triés par ordre croissant
     if(results.begin()->first != minId){
         std::cout << "Blocking min" << std::endl;
         waitCheckStop(resultsMinId);
     }
+    // Incrémentation de minId pour prendre le prochain Id
     minId++;
+    // Suppression du résultat dans la map
     Result result = results.begin()->second;
     results.erase(results.begin());
     monitorOut();
@@ -88,7 +90,6 @@ Result ComputationManager::getNextResult() {
 }
 
 Request ComputationManager::getWork(ComputationType computationType) {
-    // Filled with arbitrary code in order to make the callers wait
     monitorIn();
     int id;
     if(computation[(int)computationType].size() == 0){
@@ -113,6 +114,10 @@ bool ComputationManager::continueWork(int id) {
     bool work;
     monitorIn();
     work = abortedId.find(id) == abortedId.end() && !stopped;
+    // Efface l'id a abort si celui ci est présent dans la liste
+    if(abortedId.find(id) != abortedId.end()){
+        abortedId.erase(abortedId.find(id));
+    }
     monitorOut();
     return work;
 }
@@ -135,15 +140,13 @@ void ComputationManager::provideResult(Result result) {
 
 void ComputationManager::waitCheckStop(Condition &c){
     checkStop();
-    std::cout << "We'll be wiaitng" << std::endl;
     wait(c);
-    std::cout << "I'm out" << std::endl;
     checkStop();
 }
 
 void ComputationManager::checkStop(){
+    // Si le programme a été stoppé quitte le moniteur et renvoie une exception
     if(stopped){
-        std::cout << "Throwing exception" << std::endl;
         monitorOut();
         throwStopException();
     }
@@ -152,19 +155,23 @@ void ComputationManager::checkStop(){
 void ComputationManager::stop() {
     stopped = true;
     monitorIn();
-    std::cout << "I'm stopping" << std::endl;
+    // Envoie un signal pour un thread qui est potentiellement bloquer sur resultsEmpty ou resultsMinId
     signal(resultsEmpty);
     signal(resultsMinId);
+    // Initialisation d'un entier permettant de parcourir tout les type de computation possible
     int type = 0;
     for(Condition &c : conditionsFull){
+        // Envoie un signal a tout les threads en attente sur la condition conditionFull
         while(nbWaitingFull[type] > 0){
             signal(c);
             nbWaitingFull[type]--;
         }
+        // Passe au type suivant
         type++;
     }
     type = 0;
     for(Condition &c : conditionsEmpty){
+        // Envoie un signal a tout les threads en attente sur la condition conditionEmpty
         while(nbWaitingEmpty[type] > 0){
             signal(c);
             nbWaitingEmpty[type]--;

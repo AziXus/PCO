@@ -186,7 +186,14 @@ protected:
 
     // Ajoutez vos attributs et déclarations de méthodes ici
     // P.ex. variables conditions et structure de données pour le buffer
+    /**
+     * @brief waitCheckStop permet d'avoir la même stucture pour tout les wait effectuer dans le programme
+     * @param c Condition sur laquelle attendre(wait)
+     */
     void waitCheckStop(Condition &c);
+    /**
+     * @brief checkStop permet de vérifier si un stop a été effectué
+     */
     void checkStop();
 
     // Queues
@@ -194,17 +201,17 @@ protected:
 
     bool stopped = false;
 
-    Condition resultsEmpty;
-    Condition resultsMinId;
+    Condition resultsEmpty; // Permet de vérifier d'attendre tant que la map Results est vide
+    Condition resultsMinId; // Permet d'attendre tant que l'id obtenu n'est pas l'id équivalent a minId
     std::vector<int> nbWaitingFull;
     std::vector<int> nbWaitingEmpty;
     std::vector<Condition> conditionsFull;
     std::vector<Condition> conditionsEmpty;
     std::vector<std::set<int>> computation;
     std::map<int, Computation> computations;
-    std::map<int, Result> results;
+    std::map<int, Result> results; // Permet d'avoir une structure contenant la liaison id->résultat
     std::set<int> abortedId;
-    int minId;
+    int minId; // Permet de savoir quelle est l'id attendu par getNextResult
 
 private:
     /**
