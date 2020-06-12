@@ -2,6 +2,59 @@
 
 Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 
+## Etape 1
+### Conception
+La première étape du programme consiste a créé les fonctions requestComputation et getWork.
+
+La méthode `requestComputation` est potentiellement bloquante car il ne peut avoir que 10 computations par type. Nous utilisons donc un `std::vector<Condition> conditionsFull`. Ce vecteur permet de stocker une variable de condition par type de computation. On attends donc s'il y a 10 computations et la méthode `getWork` envoie un signal au bon type lorsque la computation est récupérée.
+
+Afin de stocker les différentes computations, nous avons décidé d'utiliser une `map` en prévision des futures fonctions. La déclaration est la suivante : `std::map<int, Computation> computations`.  
+L'index de la map contient l'id afin d'obtenir une computation en fontion de son id rapidement. Ceci sera très utile dans le cas de `abortComputation` .   
+L'utilisation d'une `std::map` permet également d'avoir un conteneur trié en fonction de l'id.
+
+Il nous faut encore un conteneur pour stocker les ids pour chaque type de computation et obtenir le prochain id. Nous avons utilisé le type suivant : `std::vector<std::queue<int>> computation`.
+
+Code de `requestComputation` :
+```C
+int ComputationManager::requestComputation(Computation c) {
+    monitorIn();
+    while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        wait(conditionsFull[(int)c.computationType]);
+    }
+    int id = nextId++;
+    computations.insert(std::make_pair(id, c));
+    computation[(int)c.computationType].push_back(id);
+    signal(conditionsEmpty[(int)c.computationType]);
+    monitorOut();
+    return id;
+}
+```
+
+Pour la méthode getWork, il est aussi nécessaire d'avoir un vecteur de variables de conditions : `    std::vector<Condition> conditionsEmpty`. Ceci permet d'attendre lorsque aucune computation du bon type n'est disponible. Le signal est envoyé par la méthode `requestComputation` lorsqu'une computation du type est ajoutée.  
+Cette méthode obtient l'id de la première computation et supprime l'id ainsi que la computation des conteneurs.
+
+Code de `getWork` :
+```C
+Request ComputationManager::getWork(ComputationType computationType) {
+    monitorIn();
+    int id;
+    if(computation[(int)computationType].size() == 0){
+        wait(conditionsEmpty[(int)computationType]);
+    }
+    id = computation[(int)computationType].front();
+    computation[(int)computationType].pop_front();
+    auto itComputation = computations.find(id);
+    Request request = Request(itComputation->second, id);
+    computations.erase(itComputation);
+    signal(conditionsFull[(int)computationType]);
+    monitorOut();
+    return request;
+}
+```
+
+— int requestComputation(Computation c);
+— Request getWork(ComputationType computationType)
+
 ## Etape 2
 
 ### Conception
