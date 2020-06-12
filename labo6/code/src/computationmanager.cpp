@@ -16,19 +16,22 @@
 #include <algorithm>
 
 
-ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3), computation(3) {
+ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3), computation(3), nbWaitingFull(3), nbWaitingEmpty(3) {
     minId = 0;
 }
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
     while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        nbWaitingFull[(int)c.computationType]++;
         waitCheckStop(conditionsFull[(int)c.computationType]);
     }
     int id = nextId++;
     computations.insert(std::make_pair(id, c));
-    computation[(int)c.computationType].push_back(id);
-    signal(conditionsEmpty[(int)c.computationType]);
+    computation[(int)c.computationType].insert(id);
+    if(nbWaitingEmpty[(int)c.computationType] > 0){
+        signal(conditionsEmpty[(int)c.computationType]);
+    }
     monitorOut();
     checkStop();
     return id;
@@ -44,6 +47,7 @@ void ComputationManager::abortComputation(int id) {
         auto it = std::find(computation[(int)itComputation->second.computationType].begin(), computation[(int)itComputation->second.computationType].end(), id);
         computation[(int)itComputation->second.computationType].erase(it);
         if(computation[(int)itComputation->second.computationType].size() + 1 == MAX_TOLERATED_QUEUE_SIZE){
+            nbWaitingFull[(int)itComputation->second.computationType]--;
             signal(conditionsFull[(int)itComputation->second.computationType]);
         }
         computations.erase(itComputation);
@@ -64,19 +68,21 @@ void ComputationManager::abortComputation(int id) {
 }
 
 Result ComputationManager::getNextResult() {
-    // Replace all of the code below by your code
-
-    // Filled with some code in order to make the thread in the UI wait
     monitorIn();
+    // Si le taille de la map result est égal à 0 cela signifie qu'elle est vide donc attente
     if(results.size() == 0){
         std::cout << "Blocking empty" << std::endl;
         waitCheckStop(resultsEmpty);
     }
-    while(results.begin()->first != minId && !stopped){
+    // Si l'id qui se trouve en premier sur la map n'est pas équiavalent à l'id attendu on attend
+    // Nous pouvons vérifier avec .begin car les id serotn triés par ordre croissant
+    if(results.begin()->first != minId){
         std::cout << "Blocking min" << std::endl;
         waitCheckStop(resultsMinId);
     }
+    // Incrémentation de minId pour prendre le prochain Id
     minId++;
+    // Suppression du résultat dans la map
     Result result = results.begin()->second;
     results.erase(results.begin());
     monitorOut();
@@ -84,21 +90,20 @@ Result ComputationManager::getNextResult() {
 }
 
 Request ComputationManager::getWork(ComputationType computationType) {
-    // TODO
-    // Replace all of the code below by your code
-
-    // Filled with arbitrary code in order to make the callers wait
     monitorIn();
     int id;
     if(computation[(int)computationType].size() == 0){
         std::cout << "Waiting because empty " << (int)computationType << std::endl;
+        nbWaitingEmpty[(int)computationType]++;
         waitCheckStop(conditionsEmpty[(int)computationType]);
     }
-    id = computation[(int)computationType].front();
-    computation[(int)computationType].pop_front();
+    auto it = computation[(int)computationType].begin();
+    id = *it;
+    computation[(int)computationType].erase(it);
     auto itComputation = computations.find(id);
     Request request = Request(itComputation->second, id);
     computations.erase(itComputation);
+    nbWaitingFull[(int)computationType]--;
     signal(conditionsFull[(int)computationType]);
     std::cout << "Going out " << (int)computationType << std::endl;
     monitorOut();
@@ -109,6 +114,10 @@ bool ComputationManager::continueWork(int id) {
     bool work;
     monitorIn();
     work = abortedId.find(id) == abortedId.end() && !stopped;
+    // Efface l'id a abort si celui ci est présent dans la liste
+    if(abortedId.find(id) != abortedId.end()){
+        abortedId.erase(abortedId.find(id));
+    }
     monitorOut();
     return work;
 }
@@ -136,6 +145,7 @@ void ComputationManager::waitCheckStop(Condition &c){
 }
 
 void ComputationManager::checkStop(){
+    // Si le programme a été stoppé quitte le moniteur et renvoie une exception
     if(stopped){
         monitorOut();
         throwStopException();
@@ -145,11 +155,28 @@ void ComputationManager::checkStop(){
 void ComputationManager::stop() {
     stopped = true;
     monitorIn();
+    // Envoie un signal pour un thread qui est potentiellement bloquer sur resultsEmpty ou resultsMinId
     signal(resultsEmpty);
     signal(resultsMinId);
-    for(Condition &c : conditionsFull)
-        signal(c);
-    for(Condition &c : conditionsEmpty)
-        signal(c);
+    // Initialisation d'un entier permettant de parcourir tout les type de computation possible
+    int type = 0;
+    for(Condition &c : conditionsFull){
+        // Envoie un signal a tout les threads en attente sur la condition conditionFull
+        while(nbWaitingFull[type] > 0){
+            signal(c);
+            nbWaitingFull[type]--;
+        }
+        // Passe au type suivant
+        type++;
+    }
+    type = 0;
+    for(Condition &c : conditionsEmpty){
+        // Envoie un signal a tout les threads en attente sur la condition conditionEmpty
+        while(nbWaitingEmpty[type] > 0){
+            signal(c);
+            nbWaitingEmpty[type]--;
+        }
+        type++;
+    }
     monitorOut();
 }
