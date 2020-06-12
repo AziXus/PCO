@@ -196,14 +196,15 @@ protected:
 
     Condition resultsEmpty;
     Condition resultsMinId;
+    std::vector<int> nbWaitingFull;
+    std::vector<int> nbWaitingEmpty;
     std::vector<Condition> conditionsFull;
     std::vector<Condition> conditionsEmpty;
-    std::vector<std::deque<int>> computation;
+    std::vector<std::set<int>> computation;
     std::map<int, Computation> computations;
     std::map<int, Result> results;
     std::set<int> abortedId;
     int minId;
-
 
 private:
     /**
