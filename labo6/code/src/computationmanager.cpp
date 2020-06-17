@@ -43,14 +43,18 @@ void ComputationManager::abortComputation(int id) {
     auto itComputation = computations.find(id);
     // Effacer de la liste des résultat
     auto itResult = results.find(id);
+
     if(itComputation != computations.end()){
-        auto it = std::find(computation[(int)itComputation->second.computationType].begin(), computation[(int)itComputation->second.computationType].end(), id);
-        computation[(int)itComputation->second.computationType].erase(it);
-        if(computation[(int)itComputation->second.computationType].size() + 1 == MAX_TOLERATED_QUEUE_SIZE){
-            nbWaitingFull[(int)itComputation->second.computationType]--;
-            signal(conditionsFull[(int)itComputation->second.computationType]);
-        }
+        int cType = (int)itComputation->second.computationType;
+        auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
+        // Remove computation
         computations.erase(itComputation);
+        computation[cType].erase(it);
+        // Si une thread était en attente, on la libère
+        if(nbWaitingFull[cType] > 0){
+            nbWaitingFull[cType]--;
+            signal(conditionsFull[cType]);
+        }
     } else if(itResult != results.end()){
         if(itResult->first == minId){
             minId++;
@@ -58,7 +62,6 @@ void ComputationManager::abortComputation(int id) {
                 signal(resultsMinId);
         }
         results.erase(itResult);
-        return;
     } else if(id < nextId || id >= minId){
         // Evite d'ajouter de id invalide
         abortedId.insert(id);
