@@ -56,10 +56,9 @@ void ComputationManager::abortComputation(int id) {
             signal(conditionsFull[cType]);
         }
     } else if(itResult != results.end()){
-        if(itResult->first == minId){
+        if(itResult->first == minId){ // Si l'on supprime le minId, on l'incrémente et l'on libère une thread
             minId++;
-            if(results.begin()->first == minId)
-                signal(resultsMinId);
+            signal(resultsMinId);
         }
         results.erase(itResult);
     } else if(id < nextId || id >= minId){
