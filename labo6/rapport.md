@@ -52,9 +52,6 @@ Request ComputationManager::getWork(ComputationType computationType) {
 }
 ```
 
-— int requestComputation(Computation c);
-— Request getWork(ComputationType computationType)
-
 ## Etape 2
 
 ### Conception
@@ -123,7 +120,70 @@ Une fois ces 2 conditions passées nous incrémentons `minId` pour spécifier le
 
 Pour valider cette étape nous avons utiliser les test proposées et des tests avec la GUI expliqué ci-dessous :
 
+## Etape 3
+Cette étape implémente les fonctions `abortComputation` et `continueWork`.  
 
+Afin de les faire fonctionner proprement, plusieurs structures ont été ajoutées :
+- std::vector<int> nbWaitingFull : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est plein. On l'incrémente juste avant le wait lorsque le buffer est plein pour le type de computation demandé.
+- std::vector<int> nbWaitingEmpty : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est vide. On l'incrémente juste avant le wait lorsque le buffer est vide pour le type de computation demandé.
+- std::set<int> abortedId : Afin de maintenir une liste des ids annulés, un set est utilisé pour supprimer et ajouter des id en `log(n)`.
+
+Le code de notre fonction abortComputation est le suivant :
+```C
+void ComputationManager::abortComputation(int id) {
+    monitorIn();
+    // Effacer de la liste des computations
+    auto itComputation = computations.find(id);
+    // Effacer de la liste des résultat
+    auto itResult = results.find(id);
+
+    if(itComputation != computations.end()){
+        int cType = (int)itComputation->second.computationType;
+        auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
+        // Remove computation
+        computations.erase(itComputation);
+        computation[cType].erase(it);
+        // Si une thread était en attente, on la libère
+        if(nbWaitingFull[cType] > 0){
+            nbWaitingFull[cType]--;
+            signal(conditionsFull[cType]);
+        }
+    } else if(itResult != results.end()){
+        if(itResult->first == minId){ // Si l'on supprime le minId, on l'incrémente et l'on libère une thread
+            minId++;
+            signal(resultsMinId);
+        }
+        results.erase(itResult);
+    } else if(id < nextId || id >= minId){
+        // Evite d'ajouter de id invalide
+        abortedId.insert(id);
+    }
+    monitorOut();
+}
+```
+La fonction commence par rechercher l'id de la computation à annuler dans `computations` et dans `results`. Il y a ensuite trois possibilités :
+
+1. Si la computation est trouvée dans la liste de computations, cela signifie qu'aucun `computeengine` effectue actuellement des calculs. On supprime donc simplement l'id des structures et on libère une thread si le buffer était plein.
+
+2. Si 1 est faux et que l'id à annuler se trouve dans les résultats, on regarde tout d'abord si l'id est égal au `minId`. Dans ce cas là, on incrémente l'id et envoie un signal à la fonction `getNextResult` si une thread attendait. On supprime ensuite le résultat dans tout les cas.
+
+3. Si 1 et 2 sont faux et que l'id est valide, on ajoute l'id aux ids annulés. Il sera utilisé plus tard dans la fonction `continueWork`.
+
+Fonction `continueWork` :
+```C
+bool ComputationManager::continueWork(int id) {
+    bool work;
+    monitorIn();
+    work = abortedId.find(id) == abortedId.end();
+    // Efface l'id a abort si celui ci est présent dans la liste
+    if(abortedId.find(id) != abortedId.end()){
+        abortedId.erase(abortedId.find(id));
+    }
+    monitorOut();
+    return work;
+}
+```
+La fonction `continueWork` retourne vrai si l'id n'a pas été annulé, faux sinon. On supprime également l'id du set s'il a été trouvé.
 
 ## Etape 4
 
