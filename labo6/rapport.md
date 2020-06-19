@@ -6,7 +6,7 @@ Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 ### Conception
 La première étape du programme consiste a créé les fonctions requestComputation et getWork.
 
-La méthode `requestComputation` est potentiellement bloquante car il ne peut avoir que 10 computations par type. Nous utilisons donc un `std::vector<Condition> conditionsFull`. Ce vecteur permet de stocker une variable de condition par type de computation. On attends donc s'il y a 10 computations et la méthode `getWork` envoie un signal au bon type lorsque la computation est récupérée.
+La méthode `requestComputation` est potentiellement bloquante car il ne peut avoir que 10 computations par type(A, B, C). Nous utilisons donc un `std::vector<Condition> conditionsFull`. Ce vecteur permet de stocker une variable de condition par type de computation. On attends donc s'il y a 10 computations et la méthode `getWork` envoie un signal au bon type lorsque la computation est récupérée.
 
 Afin de stocker les différentes computations, nous avons décidé d'utiliser une `map` en prévision des futures fonctions. La déclaration est la suivante : `std::map<int, Computation> computations`.  
 L'index de la map contient l'id afin d'obtenir une computation en fontion de son id rapidement. Ceci sera très utile dans le cas de `abortComputation` .   
@@ -14,7 +14,7 @@ L'utilisation d'une `std::map` permet également d'avoir un conteneur trié en f
 
 Il nous faut encore un conteneur pour stocker les ids pour chaque type de computation et obtenir le prochain id. Nous avons utilisé le type suivant : `std::vector<std::queue<int>> computation`.
 
-Code de `requestComputation` :
+Voici le code de la fonction `requestComputation` :
 ```C
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
@@ -29,9 +29,10 @@ int ComputationManager::requestComputation(Computation c) {
     return id;
 }
 ```
+Cette fonction va être bloquante si la taille de computation max a été atteinte. Si c'est le cas le thrad va se mettre en attente sur la condition correspondant à son type. Sinon l'id va augmenter et la compuation va ensuite être ajoutée dans la queue liée à son type.
 
 Pour la méthode getWork, il est aussi nécessaire d'avoir un vecteur de variables de conditions : `    std::vector<Condition> conditionsEmpty`. Ceci permet d'attendre lorsque aucune computation du bon type n'est disponible. Le signal est envoyé par la méthode `requestComputation` lorsqu'une computation du type est ajoutée.  
-Cette méthode obtient l'id de la première computation et supprime l'id ainsi que la computation des conteneurs.
+Cette méthode obtient l'id de la première computation(Computation la plus ancienne) et supprime l'id ainsi que la computation des conteneurs.
 
 Code de `getWork` :
 ```C
@@ -62,9 +63,9 @@ Condition resultsMinId;
 std::map<int, Result> results;
 int minId;
 ```
-Nous avons ajouter 2 conditions `resultsEmpty` et `resultsMinId` pour que la fonction `getNextResult()` soit bloquante. Une condition va nous permettre d'arrêter le thread lorsque le buffer de résultat est vide et la seconde va nous permettre d'attendre jusqu'à ce que le résultat avec l'id le plus ancien(id minimal) arrive en tant que résultat.
+Nous avons ajouter 2 conditions `resultsEmpty` et `resultsMinId` pour que la fonction `getNextResult()` soit bloquante. La condition `resultsEmpty` va nous permettre d'arrêter le thread lorsque le buffer de résultat est vide et la seconde va nous permettre d'attendre jusqu'à ce que le résultat avec l'id le plus ancien(id plus petit) arrive en tant que résultat.
 
-Nous avons ensuite défini une map `results` allant contenir une paire `id->résultat` ainsi, nous aurons tout les résultat dans l'ordre croissant des id. Nous avons utilisé une map car ainsi il est simple de faire une attente sur l'id minium et nous savons alors que cet id sera toujours le premier. Nous pouvons aussi grâce a cette structure lié un résultat à un id.
+Nous avons ensuite défini une map `results` allant contenir une paire `id->résultat` ainsi, nous aurons tout les résultat dans l'ordre croissant des id. Nous avons utilisé une map car cela facilte l'implémentation de l'attente sur l'id minium, nous savons alors que cet id sera toujours le premier. Nous pouvons aussi grâce a cette structure lié un résultat à un id ce qui nous est fortement utile.
 
 L'entier `minId` va permettre de savoir quel est le prochain id attendu pour transmettre le résultat.
 
@@ -98,7 +99,7 @@ Result ComputationManager::getNextResult() {
         std::cout << "Blocking empty" << std::endl;
         wait(resultsEmpty);
     }
-    while(results.begin()->first != minId){
+    if(results.begin()->first != minId){
         std::cout << "Blocking min" << std::endl;
         wait(resultsMinId);
     }
@@ -124,9 +125,9 @@ Pour valider cette étape nous avons utiliser les test proposées et des tests a
 Cette étape implémente les fonctions `abortComputation` et `continueWork`.  
 
 Afin de les faire fonctionner proprement, plusieurs structures ont été ajoutées :
-- std::vector<int> nbWaitingFull : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est plein. On l'incrémente juste avant le wait lorsque le buffer est plein pour le type de computation demandé.
-- std::vector<int> nbWaitingEmpty : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est vide. On l'incrémente juste avant le wait lorsque le buffer est vide pour le type de computation demandé.
-- std::set<int> abortedId : Afin de maintenir une liste des ids annulés, un set est utilisé pour supprimer et ajouter des id en `log(n)`.
+- `std::vector<int> nbWaitingFull` : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est plein. On l'incrémente juste avant le wait lorsque le buffer est plein pour le type de computation demandé.
+- `std::vector<int> nbWaitingEmpty` : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est vide. On l'incrémente juste avant le wait lorsque le buffer est vide pour le type de computation demandé.
+- `std::set<int> abortedId` : Afin de maintenir une liste des ids annulés, un set est utilisé pour supprimer et ajouter des id en `log(n)`.
 
 Le code de notre fonction abortComputation est le suivant :
 ```C
