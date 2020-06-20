@@ -3,7 +3,7 @@
 //  / ___/ /__/ /_/ / / __// // / __// // / //
 // /_/   \___/\____/ /____/\___/____/\___/  //
 //                                          //
-// Auteurs : Prénom Nom, Prénom Nom
+// Auteurs : Müller Robin, Teixeira Carvalho Stéphane
 
 
 // A vous de remplir les méthodes, vous pouvez ajouter des attributs ou méthodes pour vous aider
@@ -16,24 +16,31 @@
 #include <algorithm>
 
 
-ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3), computation(3), nbWaitingFull(3), nbWaitingEmpty(3) {
+ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize), conditionsEmpty(3), conditionsFull(3)
+                                        , computation(3), nbWaitingFull(3), nbWaitingEmpty(3) {
     minId = 0;
 }
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
+    // Si le nombre de compuation Max est égal au max autorisé pour le type donné une attente est effetuée
     if(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        // Augmentation du nombre de computation en attente
         nbWaitingFull[(int)c.computationType]++;
+        // Vérification que le programme n'est pas stoppé
         waitCheckStop(conditionsFull[(int)c.computationType]);
     }
+    // Passe au prochain id
     int id = nextId++;
+    // Ajout de la paire id->computaion dans la map
     computations.insert(std::make_pair(id, c));
+    // Ajoute l'id de la computation dans la deque
     computation[(int)c.computationType].insert(id);
+    // Si un computeEngine était en attente on le signal qu'une computation ets disponible
     if(nbWaitingEmpty[(int)c.computationType] > 0){
         signal(conditionsEmpty[(int)c.computationType]);
     }
     monitorOut();
-    checkStop();
     return id;
 }
 
@@ -44,19 +51,22 @@ void ComputationManager::abortComputation(int id) {
     // Effacer de la liste des résultat
     auto itResult = results.find(id);
 
+    // Si l'id a été trouvé dans la liste des computations
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
-        auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
-        // Remove computation
+        // Trouve l'id a supprimer de la deque
+        auto itDeque = std::find(computation[cType].begin(), computation[cType].end(), id);
+        // Efface la computation trouvée de la map et de la deque
         computations.erase(itComputation);
-        computation[cType].erase(it);
-        // Si une thread était en attente, on la libère
+        computation[cType].erase(itDeque);
+        // Si un thread était en attente, on le libère
         if(nbWaitingFull[cType] > 0){
             nbWaitingFull[cType]--;
             signal(conditionsFull[cType]);
         }
+    // Si l'id a été trouvé dans la liste des résultats
     } else if(itResult != results.end()){
-        if(itResult->first == minId){ // Si l'on supprime le minId, on l'incrémente et l'on libère une thread
+        if(itResult->first == minId){ // Si on supprime le minId, on l'incrémente et on libère un thread
             minId++;
             signal(resultsMinId);
         }
@@ -66,20 +76,17 @@ void ComputationManager::abortComputation(int id) {
         abortedId.insert(id);
     }
     monitorOut();
-    checkStop();
 }
 
 Result ComputationManager::getNextResult() {
     monitorIn();
     // Si le taille de la map result est égal à 0 cela signifie qu'elle est vide donc attente
     if(results.size() == 0){
-        std::cout << "Blocking empty" << std::endl;
         waitCheckStop(resultsEmpty);
     }
-    // Si l'id qui se trouve en premier sur la map n'est pas équiavalent à l'id attendu on attend
-    // Nous pouvons vérifier avec .begin car les id serotn triés par ordre croissant
+    // Si l'id qui se trouve en premier sur la map n'est pas équivalent à l'id attendu on attend
+    // Nous pouvons vérifier avec .begin car les id seront triés par ordre croissant
     if(results.begin()->first != minId){
-        std::cout << "Blocking min" << std::endl;
         waitCheckStop(resultsMinId);
     }
     // Incrémentation de minId pour prendre le prochain Id
@@ -94,20 +101,26 @@ Result ComputationManager::getNextResult() {
 Request ComputationManager::getWork(ComputationType computationType) {
     monitorIn();
     int id;
+    // Si la liste des computations est vide on attend
     if(computation[(int)computationType].size() == 0){
-        std::cout << "Waiting because empty " << (int)computationType << std::endl;
         nbWaitingEmpty[(int)computationType]++;
         waitCheckStop(conditionsEmpty[(int)computationType]);
     }
+    // Prend le premier élément sur la deque
     auto it = computation[(int)computationType].begin();
     id = *it;
+    // Efface la computation de la deque
     computation[(int)computationType].erase(it);
     auto itComputation = computations.find(id);
+    // Ajoute la computation dans la liste des requêtes
     Request request = Request(itComputation->second, id);
+    // Efface la computation de la map car c'est maintenant une requête
     computations.erase(itComputation);
-    nbWaitingFull[(int)computationType]--;
-    signal(conditionsFull[(int)computationType]);
-    std::cout << "Going out " << (int)computationType << std::endl;
+    // Envoie un signal si une computation est en attente car le buffer est plein
+    if(nbWaitingFull[(int)computationType] > 0){
+        nbWaitingFull[(int)computationType]--;
+        signal(conditionsFull[(int)computationType]);
+    }
     monitorOut();
     return request;
 }
@@ -126,15 +139,13 @@ bool ComputationManager::continueWork(int id) {
 
 void ComputationManager::provideResult(Result result) {
     monitorIn();
-    std::cout << "Providing result" << std::endl;
     results.insert(std::make_pair(result.getId(), result));
     // A cause du fait que le thread reveille prend la main
     if(results.size() == 1){
-        std::cout << "Sending empty" << std::endl;
         signal(resultsEmpty);
     }
+    // Si l'id du résultat reçu est bien celui attendu on le signal
     if(results.begin()->first == minId){
-        std::cout << "Sending min" << std::endl;
         signal(resultsMinId);
     }
     monitorOut();
