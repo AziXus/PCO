@@ -121,6 +121,38 @@ Une fois ces 2 conditions passées nous incrémentons `minId` pour spécifier le
 
 Pour valider cette étape nous avons utiliser les test proposées et des tests avec la GUI expliqué ci-dessous :
 
+#### Test 1
+
+Dans un premier temps nous avions testé le cas où nous envoyons une tâche de chaque type. Mais ce test ne fonctionnait pas car il y avait un problème dans le ComputeEngine des computation A et B.
+
+Pour corriger cela il fallait modifier la valeur de retour de la fonction continueWork et mettre true.
+
+Voici donc le résultat après la modification
+
+![](./images/Etape2_Test1.PNG)
+
+On voit alors que même si les computation B et C se terminent avant A le programm attend que A se termine avant d'afficher les requests.
+
+#### Test 2
+
+Dans ce cas, nous avons augmenter le nombre de computation en variant les computations.
+
+![](./images/Etape2_Test2.PNG)
+
+Le test est correct car les id sont dans l'ordre comme désiré
+
+#### Test supplémentaires
+
+Nous avons ensuite continuer d'augmenter le nombre de computations et vérifier si les id restait dans l'ordre.
+
+| # | Nb computations | Computation par type | Ordre correct   |
+|---|------------|----------|------------|
+| 1 | 15         | 5        | OK      |
+| 2 | 30         | 10       | OK      |
+| 3 | 45         | 15       | OK      |
+| 4 | 60         | 20       | OK      |
+| 5 | 75         | 25       | OK      |
+
 ## Etape 3
 Cette étape implémente les fonctions `abortComputation` et `continueWork`.  
 
@@ -258,4 +290,31 @@ Nous avons ajouter la condition `!stopped` ainsi si `stopped` passe a true work 
 
 ### Tests
 
-Pour valider cette étape nous avons utiliser les test proposées et des tests avec la GUI expliqué ci-dessous :
+Pour valider cette étape nous avons utilisé les test proposés et des tests avec la GUI expliqué ci-dessous :
+
+#### Test 1
+
+Avec la GUI nous avons tout d'abord tester le fonctionnement de base qui est d'arrêter le programme au bout d'un certain temps alors que des computation sont en cours.
+
+![](./images/Etape4_Test1.PNG)
+
+Dans un premier temps on peut voir que le programme arrête bien les computations directement dès que le signal stop est envoyé. Le siganl stop a été envoyé juste après la demande de computation 8.
+
+Si on regarde dans le terminal on voit également que les compute engines sont bien stopper.
+```
+GUI Enabled : 0
+[STOP] Compute Engine A - 0
+GUI Enabled : 1
+[STOP] Compute Engine A - 1
+GUI Enabled : 2
+[STOP] Compute Engine B - 0
+GUI Enabled : 3
+[STOP] Compute Engine C - 0
+```
+#### Test 2
+
+Nous avons ensuite effectué un 2ème test pour vérifier que le programme n'accepte plus de computation après un arrêt.
+
+![](./images/Etape4_Test2.PNG)
+
+Le test est fonctionnel car on voit que les computations B, A, C sont grisés ce qui indique qu'il n'est plus possible d'effectuer une computation. 
