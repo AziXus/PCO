@@ -22,7 +22,7 @@ ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SI
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
-    while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
+    if(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
         nbWaitingFull[(int)c.computationType]++;
         waitCheckStop(conditionsFull[(int)c.computationType]);
     }
