@@ -209,6 +209,14 @@ bool ComputationManager::continueWork(int id) {
 ```
 La fonction `continueWork` retourne vrai si l'id n'a pas été annulé, faux sinon. On supprime également l'id du set s'il a été trouvé.
 
+### Tests
+
+Pour valider cette étape nous avons utiliser les test proposées et des tests avec la GUI expliqué ci-dessous :
+
+Avec la GUI, nous devrions être capable d'utiliser toutes les fonctionnalités à l'exception de l'arrêt.
+
+#### ade computations identique
+
 ## Etape 4
 
 ### Conception

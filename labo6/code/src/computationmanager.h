@@ -203,14 +203,14 @@ protected:
 
     Condition resultsEmpty; // Permet de vérifier d'attendre tant que la map Results est vide
     Condition resultsMinId; // Permet d'attendre tant que l'id obtenu n'est pas l'id équivalent a minId
-    std::vector<int> nbWaitingFull;
-    std::vector<int> nbWaitingEmpty;
-    std::vector<Condition> conditionsFull;
-    std::vector<Condition> conditionsEmpty;
-    std::vector<std::set<int>> computation;
-    std::map<int, Computation> computations;
+    std::vector<int> nbWaitingFull; // Permet de savoir le nombre de threads qui attendent car le buffer est plein par type
+    std::vector<int> nbWaitingEmpty; // Permet de savoir le nombre de computeEngine qui attendent car le buffer est vide
+    std::vector<Condition> conditionsFull; // Permet d'avoir une condition d'attente si le buffer est plein pour chaque type
+    std::vector<Condition> conditionsEmpty; // Permet d'avoir une condition d'attente si le buffer est vide pour chaque type
+    std::vector<std::set<int>> computation; // Permet d'avoir toute les computations par type
+    std::map<int, Computation> computations; // permet d'avoir toutes les computations du système
     std::map<int, Result> results; // Permet d'avoir une structure contenant la liaison id->résultat
-    std::set<int> abortedId;
+    std::set<int> abortedId; // Permet d'avoir la liste de tout les id que l'on a arrêté
     int minId; // Permet de savoir quelle est l'id attendu par getNextResult
 
 private:
