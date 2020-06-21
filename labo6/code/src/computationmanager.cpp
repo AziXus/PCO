@@ -62,7 +62,7 @@ void ComputationManager::abortComputation(int id) {
         auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
         // Efface la computation trouvée de la map et du set
         computations.erase(itComputation);
-        computation[cType].erase(itDeque);
+        computation[cType].erase(it);
         // Si un thread était en attente, on le libère
         if(nbWaitingFull[cType] > 0){
             nbWaitingFull[cType]--;
@@ -147,12 +147,6 @@ bool ComputationManager::continueWork(int id) {
     bool work;
     monitorIn();
     work = abortedId.find(id) == abortedId.end() && !stopped;
-//    // Efface l'id a abort si celui ci est présent dans la liste
-//    if(abortedId.find(id) != abortedId.end()){
-//        if (id == minId)
-//            minId++;
-//        abortedId.erase(abortedId.find(id));
-//    }
     monitorOut();
     return work;
 }
