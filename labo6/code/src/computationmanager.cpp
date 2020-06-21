@@ -22,15 +22,21 @@ ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SI
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
-    while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
-        nbWaitingFull[(int)c.computationType]++;
-        waitCheckStop(conditionsFull[(int)c.computationType]);
+    // Stock le type de computation en int afin de simplifier le code
+    int cType = (int)c.computationType;
+    // Si le buffer du type de computation est plein, on wait
+    while(computation[cType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        nbWaitingFull[cType]++;
+        waitCheckStop(conditionsFull[cType]);
     }
+    // Insertion de la computation
     int id = nextId++;
     computations.insert(std::make_pair(id, c));
-    computation[(int)c.computationType].insert(id);
-    if(nbWaitingEmpty[(int)c.computationType] > 0){
-        signal(conditionsEmpty[(int)c.computationType]);
+    computation[cType].insert(id);
+
+    // Envoie d'un signal si une thread est en attente car buffer était vide
+    if(nbWaitingEmpty[cType] > 0){
+        signal(conditionsEmpty[cType]);
     }
     monitorOut();
     checkStop();
