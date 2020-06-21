@@ -53,7 +53,7 @@ void ComputationManager::abortComputation(int id) {
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
         auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
-        // Remove computation
+        // Supprime la computation
         computations.erase(itComputation);
         computation[cType].erase(it);
         // Si une thread était en attente, on la libère
@@ -67,10 +67,13 @@ void ComputationManager::abortComputation(int id) {
             signal(resultsMinId);
         }
         results.erase(itResult);
-    } else if(id < nextId || id >= minId){
-        // Evite d'ajouter de id invalide
+    }
+
+    // On ajoute uniquement ids valide
+    if(id < nextId || id >= minId){
         abortedId.insert(id);
     }
+
     monitorOut();
     checkStop();
 }
@@ -82,6 +85,13 @@ Result ComputationManager::getNextResult() {
         std::cout << "Blocking empty" << std::endl;
         waitCheckStop(resultsEmpty);
     }
+
+    // Supprime les id abortés et augmente minId
+    while (abortedId.size() > 0 && *abortedId.begin() == minId) {
+        abortedId.erase(abortedId.begin());
+        minId++;
+    }
+
     // Si l'id qui se trouve en premier sur la map n'est pas équiavalent à l'id attendu on attend
     // Nous pouvons vérifier avec .begin car les id serotn triés par ordre croissant
     if(results.begin()->first != minId){
@@ -129,10 +139,12 @@ bool ComputationManager::continueWork(int id) {
     bool work;
     monitorIn();
     work = abortedId.find(id) == abortedId.end() && !stopped;
-    // Efface l'id a abort si celui ci est présent dans la liste
-    if(abortedId.find(id) != abortedId.end()){
-        abortedId.erase(abortedId.find(id));
-    }
+//    // Efface l'id a abort si celui ci est présent dans la liste
+//    if(abortedId.find(id) != abortedId.end()){
+//        if (id == minId)
+//            minId++;
+//        abortedId.erase(abortedId.find(id));
+//    }
     monitorOut();
     return work;
 }
