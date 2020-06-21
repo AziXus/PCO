@@ -100,20 +100,25 @@ Result ComputationManager::getNextResult() {
 Request ComputationManager::getWork(ComputationType computationType) {
     monitorIn();
     int id;
-    if(computation[(int)computationType].size() == 0){
-        std::cout << "Waiting because empty " << (int)computationType << std::endl;
-        nbWaitingEmpty[(int)computationType]++;
-        waitCheckStop(conditionsEmpty[(int)computationType]);
+    // Stock le type de computation en int afin de simplifier le code
+    int cType = (int)computationType;
+    // Attente si le buffer du type est vide
+    if(computation[cType].size() == 0){
+        std::cout << "Waiting because empty " << cType << std::endl;
+        nbWaitingEmpty[cType]++;
+        waitCheckStop(conditionsEmpty[cType]);
     }
-    auto it = computation[(int)computationType].begin();
+    // Récupère l'id et supprime le du conteneur
+    auto it = computation[cType].begin();
     id = *it;
-    computation[(int)computationType].erase(it);
+    computation[cType].erase(it);
     auto itComputation = computations.find(id);
     Request request = Request(itComputation->second, id);
     computations.erase(itComputation);
-    nbWaitingFull[(int)computationType]--;
-    signal(conditionsFull[(int)computationType]);
-    std::cout << "Going out " << (int)computationType << std::endl;
+    nbWaitingFull[cType]--;
+    // Signal une thread qui attendait car buffer plein
+    signal(conditionsFull[cType]);
+    std::cout << "Going out " << cType << std::endl;
     monitorOut();
     return request;
 }
