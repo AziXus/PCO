@@ -23,22 +23,27 @@ ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SI
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
+    checkStop();
+    // Stock le type de computation en int afin de simplifier le code
+    int cType = (int)c.computationType;
     // Si le nombre de compuation Max est égal au max autorisé pour le type donné une attente est effetuée
-    if(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
-        // Augmentation du nombre de computation en attente
-        nbWaitingFull[(int)c.computationType]++;
+    if(computation[cType].size() == MAX_TOLERATED_QUEUE_SIZE){
+      // Augmentation du nombre de computation en attente
+        nbWaitingFull[cType]++;
         // Vérification que le programme n'est pas stoppé
-        waitCheckStop(conditionsFull[(int)c.computationType]);
+        waitCheckStop(conditionsFull[cType]);
     }
     // Passe au prochain id
     int id = nextId++;
     // Ajout de la paire id->computaion dans la map
     computations.insert(std::make_pair(id, c));
+
     // Ajoute l'id de la computation dans la deque
-    computation[(int)c.computationType].insert(id);
-    // Si un computeEngine était en attente on le signal qu'une computation ets disponible
-    if(nbWaitingEmpty[(int)c.computationType] > 0){
-        signal(conditionsEmpty[(int)c.computationType]);
+    computation[cType].insert(id);
+
+    // Si un computeEngine était en attente on le signal qu'une computation est disponible
+    if(nbWaitingEmpty[cType] > 0){
+        signal(conditionsEmpty[cType]);
     }
     monitorOut();
     return id;
@@ -54,11 +59,11 @@ void ComputationManager::abortComputation(int id) {
     // Si l'id a été trouvé dans la liste des computations
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
-        // Trouve l'id a supprimer de la deque
-        auto itDeque = std::find(computation[cType].begin(), computation[cType].end(), id);
-        // Efface la computation trouvée de la map et de la deque
+        // Trouve l'id a supprimer du set
+        auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
+        // Efface la computation trouvée de la map et du set
         computations.erase(itComputation);
-        computation[cType].erase(itDeque);
+        computation[cType].erase(it);
         // Si un thread était en attente, on le libère
         if(nbWaitingFull[cType] > 0){
             nbWaitingFull[cType]--;
@@ -71,16 +76,13 @@ void ComputationManager::abortComputation(int id) {
             signal(resultsMinId);
         }
         results.erase(itResult);
-    } else if(id < nextId || id >= minId){
-        if(id == minId){
-          minId++;
-          if(results.begin()->first == minId){
-              signal(resultsMinId);
-          }
-        }
-        // Evite d'ajouter de id invalide
+    }
+
+    // On ajoute uniquement ids valide
+    if(id < nextId || id >= minId){
         abortedId.insert(id);
     }
+
     monitorOut();
 }
 
@@ -90,6 +92,13 @@ Result ComputationManager::getNextResult() {
     if(results.size() == 0){
         waitCheckStop(resultsEmpty);
     }
+
+    // Supprime les id abortés et augmente minId
+    while (abortedId.size() > 0 && *abortedId.begin() == minId) {
+        abortedId.erase(abortedId.begin());
+        minId++;
+    }
+
     // Si l'id qui se trouve en premier sur la map n'est pas équivalent à l'id attendu on attend
     // Nous pouvons vérifier avec .begin car les id seront triés par ordre croissant
     if(results.begin()->first != minId){
@@ -112,26 +121,30 @@ Result ComputationManager::getNextResult() {
 Request ComputationManager::getWork(ComputationType computationType) {
     monitorIn();
     int id;
+    // Stock le type de computation en int afin de simplifier le code
+    int cType = (int)computationType;
     // Si la liste des computations est vide on attend
-    if(computation[(int)computationType].size() == 0){
-        nbWaitingEmpty[(int)computationType]++;
-        waitCheckStop(conditionsEmpty[(int)computationType]);
+    if(computation[cType].size() == 0){
+        std::cout << "Waiting because empty " << cType << std::endl;
+        nbWaitingEmpty[cType]++;
+        waitCheckStop(conditionsEmpty[cType]);
     }
-    // Prend le premier élément sur la deque
-    auto it = computation[(int)computationType].begin();
+    // Prend le premier élément du set
+    auto it = computation[cType].begin();
     id = *it;
-    // Efface la computation de la deque
-    computation[(int)computationType].erase(it);
+    // Efface la computation
+    computation[cType].erase(it);
     auto itComputation = computations.find(id);
     // Ajoute la computation dans la liste des requêtes
     Request request = Request(itComputation->second, id);
     // Efface la computation de la map car c'est maintenant une requête
     computations.erase(itComputation);
     // Envoie un signal si une computation est en attente car le buffer est plein
-    if(nbWaitingFull[(int)computationType] > 0){
-        nbWaitingFull[(int)computationType]--;
-        signal(conditionsFull[(int)computationType]);
+    if (nbWaitingFull[cType] > 0) {
+        nbWaitingFull[cType]--;
+        signal(conditionsFull[cType]);
     }
+    std::cout << "Going out " << cType << std::endl;
     monitorOut();
     return request;
 }
