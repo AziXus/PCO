@@ -80,10 +80,7 @@ void ComputationManager::abortComputation(int id) {
     } else {
         // Si on supprime le minId, on l'incrémente et on libère un thread
         if (id == minId) {
-            // Cherche le prochain minId qui n'est pas aborter
-            while(abortedId.size() > 0 && *abortedId.begin() == minId) {
-                minId++;
-            }
+            minId++;
             signal(resultsMinId);
         }
     }
