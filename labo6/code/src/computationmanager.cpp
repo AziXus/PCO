@@ -56,6 +56,11 @@ void ComputationManager::abortComputation(int id) {
     // Effacer de la liste des résultat
     auto itResult = results.find(id);
 
+    // On ajoute uniquement les ids valide
+    if(id < nextId || id >= minId){
+        abortedId.insert(id);
+    }
+
     // Si l'id a été trouvé dans la liste des computations
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
@@ -71,16 +76,13 @@ void ComputationManager::abortComputation(int id) {
         }
     // Si l'id a été trouvé dans la liste des résultats
     } else if(itResult != results.end()){
-        if(itResult->first == minId){ // Si on supprime le minId, on l'incrémente et on libère un thread
+        results.erase(itResult);
+    } else {
+        // Si on supprime le minId, on l'incrémente et on libère un thread
+        if (id == minId) {
             minId++;
             signal(resultsMinId);
         }
-        results.erase(itResult);
-    }
-
-    // On ajoute uniquement ids valide
-    if(id < nextId || id >= minId){
-        abortedId.insert(id);
     }
 
     monitorOut();
@@ -102,6 +104,7 @@ Result ComputationManager::getNextResult() {
     // Si l'id qui se trouve en premier sur la map n'est pas équivalent à l'id attendu on attend
     // Nous pouvons vérifier avec .begin car les id seront triés par ordre croissant
     if(results.begin()->first != minId){
+        std::cout << "Sleep not minid(" << minId << ")" << std::endl;
         waitCheckStop(resultsMinId);
     }
     // Suppression du résultat dans la map

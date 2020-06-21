@@ -161,6 +161,11 @@ void ComputationManager::abortComputation(int id) {
     // Effacer de la liste des résultat
     auto itResult = results.find(id);
 
+    // On ajoute uniquement les ids valide
+    if(id < nextId || id >= minId){
+        abortedId.insert(id);
+    }
+
     // Si l'id a été trouvé dans la liste des computations
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
@@ -176,28 +181,28 @@ void ComputationManager::abortComputation(int id) {
         }
     // Si l'id a été trouvé dans la liste des résultats
     } else if(itResult != results.end()){
-        if(itResult->first == minId){ // Si on supprime le minId, on l'incrémente et on libère un thread
-            minId++;
-            signal(resultsMinId);
-        }
         results.erase(itResult);
-    }
-
-    // On ajoute uniquement ids valide
-    if(id < nextId || id >= minId){
-        abortedId.insert(id);
+    } else {
+        // Si on supprime le minId, on l'incrémente et on libère un thread
+        if (id == minId) {
+          minId++;
+          signal(resultsMinId);
+        }
     }
 
     monitorOut();
 }
 ```
-La fonction commence par rechercher l'id de la computation à annuler dans `computations` et dans `results`. Il y a ensuite deux possibilités :
+La fonction commence par rechercher l'id de la computation à annuler dans `computations` et dans `results`.  
+On ajoute ensuite l'id dans la liste des ids abortés. Ceci permet à la fonction `continueWork` de retourner faux et à `getNextResult` d'ignorer les ids abortés.
+
+Il y a ensuite trois possibilités :
 
 1. Si la computation est trouvée dans la liste de computations, cela signifie qu'aucun `computeengine` effectue actuellement des calculs. On supprime donc simplement l'id des structures et on libère une thread si le buffer était plein.
 
-2. Si 1 est faux et que l'id à annuler se trouve dans les résultats, on regarde tout d'abord si l'id est égal au `minId`. Dans ce cas là, on incrémente l'id et envoie un signal à la fonction `getNextResult` si une thread attendait. On supprime ensuite le résultat dans tout les cas.
+2. Si 1 est faux et que l'id à annuler se trouve dans les résultats, on supprime le résultat du conteneur.
 
-On ajoute ensuite l'id dans la liste des ids abortés. Ceci permet à la fonction `continueWork` de retourner faux et à `getNextResult` d'ignorer les ids abortés.
+3. Si 1 et 2 sont faux, on est alors en cours de calcul. On regarde si l'id a annulé est égal au `minId`. Dans ce cas là, on incrémente l'id et envoie un signal à la fonction `getNextResult` si une thread attendait le `minId`.
 
 Fonction `continueWork` :
 ```C
