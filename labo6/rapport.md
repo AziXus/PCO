@@ -147,15 +147,17 @@ Pour corriger cela il fallait modifier la valeur de retour de la fonction contin
 
 Voici donc le résultat après la modification
 
-<img alt="Test 1" src="./images/Etape2_Test1.PNG" width="428" height="426" >
+<img alt="Test 1" src="./images/Etape2_Test1.PNG" width="328" height="326" >
 
 On voit alors que même si les computation B et C se terminent avant A le programme attend que A se termine avant d'afficher les requests.
+
+<div style="page-break-after: always;"></div>
 
 #### Test 2
 
 Dans ce cas, nous avons augmenter le nombre de computation en variant les computations.
 
-<img alt="Test 1" src="./images/Etape2_Test2.PNG" width="577" height="450" >
+<img alt="Test 1" src="./images/Etape2_Test2.PNG" width="377" height="250" >
 
 Le test est correct car les id sont dans retournés l'ordre comme désiré
 
@@ -179,6 +181,8 @@ Afin de les faire fonctionner proprement, plusieurs structures ont été ajouté
 - `std::vector<int> nbWaitingFull` : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est plein. On l'incrémente juste avant le wait lorsque le buffer est plein pour le type de computation demandé. Ceci nous permet également de modifier la fonction `getWork` et d'envoyer un signal seulement si une thread est en attente.
 - `std::vector<int> nbWaitingEmpty` : Ce vecteur permet de maintenir un compteur pour chaque type de computation lorsque le buffer du type est vide. On l'incrémente juste avant le wait lorsque le buffer est vide pour le type de computation demandé. Ceci nous permet également de modifier la fonction `requestComputation` et d'envoyer un signal seulement si une thread est en attente.
 - `std::set<int> abortedId` : Afin de maintenir une liste des ids annulés, un set est utilisé pour supprimer et ajouter des id en `log(n)`.
+
+<div style="page-break-after: always;"></div>
 
 Le code de notre fonction abortComputation est le suivant :
 ```C
@@ -265,7 +269,7 @@ Avec la GUI, nous devrions être capable d'utiliser toutes les fonctionnalités 
 Afin de vérifier le fonctionnement de l'annulation, une computation A est lancée ainsi qu'une computation B. On annule ensuite la computation A.
 
 On ne devrait pas obtenir de résultat A mais un résultat pour B. La capture d'écran suivante valide le test:  
-<img alt="Test 3.1" src="./img/T3.1.png" width="500" >
+<img alt="Test 3.1" src="./img/T3.1.png" width="300" >
 
 #### Annulation d'une computation en attente
 On lance le test de la façon suivante :
@@ -275,7 +279,7 @@ On lance le test de la façon suivante :
 4. Annulation de la seconde computation B
 
 On ne devrait pas obtenir de résultat avec l'id 1 mais des résultats pour les ids 0 et 2. La capture d'écran suivante valide le test:  
-<img alt="Test 3.2" src="./img/T3.2.png" width="500" >
+<img alt="Test 3.2" src="./img/T3.2.png" width="300" >
 
 #### Annulation d'une computation terminée
 On lance le test de la façon suivante :
@@ -286,7 +290,9 @@ On lance le test de la façon suivante :
 
 Une fois que A se termine, on doit obtenir le résultat des computations
 On ne devrait pas obtenir de résultat avec l'id 1 ou 2 mais des résultats pour les ids 0 et 3. La capture d'écran suivante valide le test:  
-<img alt="Test 3.3" src="./img/T3.3.png" width="500" >
+<img alt="Test 3.3" src="./img/T3.3.png" width="300" >
+
+<div style="page-break-after: always;"></div>
 
 ## Etape 4
 
@@ -375,7 +381,7 @@ Pour valider cette étape nous avons utilisé les test proposés et des tests av
 
 Avec la GUI nous avons tout d'abord tester le fonctionnement de base qui est d'arrêter le programme au bout d'un certain temps alors que des computation sont en cours.
 
-<img alt="Test 1" src="./images/Etape4_Test1.PNG" width="419" height="443" >
+<img alt="Test 1" src="./images/Etape4_Test1.PNG" width="319" height="343" >
 
 Dans un premier temps on peut voir que le programme arrête bien les computations directement dès que le signal stop est envoyé. Le signal stop a été envoyé juste après la demande de computation 8.
 
@@ -390,10 +396,11 @@ GUI Enabled : 2
 GUI Enabled : 3
 [STOP] Compute Engine C - 0
 ```
+
 #### Test 2
 
 Nous avons ensuite effectué un 2ème test pour vérifier que le programme n'accepte plus de computation après un arrêt.
 
-<img alt="Test 1" src="./images/Etape4_Test2.PNG" width="638" height="482" >
+<img alt="Test 1" src="./images/Etape4_Test2.PNG" width="338" height="282" >
 
 Le test est fonctionnel car on voit que les computations B, A, C sont grisés ce qui indique qu'il n'est plus possible d'effectuer une computation.
