@@ -109,11 +109,6 @@ Result ComputationManager::getNextResult() {
     results.erase(results.begin());
     // Incrémentation de minId pour prendre le prochain Id
     minId++;
-    while(abortedId.find(minId) != abortedId.end()){
-        abortedId.erase(abortedId.find(minId));
-        minId++;
-    }
-    std::cout << minId << std::endl;
     monitorOut();
     return result;
 }
