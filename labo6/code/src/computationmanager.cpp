@@ -72,6 +72,12 @@ void ComputationManager::abortComputation(int id) {
         }
         results.erase(itResult);
     } else if(id < nextId || id >= minId){
+        if(id == minId){
+          minId++;
+          if(results.begin()->first == minId){
+              signal(resultsMinId);
+          }
+        }
         // Evite d'ajouter de id invalide
         abortedId.insert(id);
     }
@@ -89,11 +95,16 @@ Result ComputationManager::getNextResult() {
     if(results.begin()->first != minId){
         waitCheckStop(resultsMinId);
     }
-    // Incrémentation de minId pour prendre le prochain Id
-    minId++;
     // Suppression du résultat dans la map
     Result result = results.begin()->second;
     results.erase(results.begin());
+    // Incrémentation de minId pour prendre le prochain Id
+    minId++;
+    while(abortedId.find(minId) != abortedId.end()){
+        abortedId.erase(abortedId.find(minId));
+        minId++;
+    }
+    std::cout << minId << std::endl;
     monitorOut();
     return result;
 }
@@ -129,10 +140,6 @@ bool ComputationManager::continueWork(int id) {
     bool work;
     monitorIn();
     work = abortedId.find(id) == abortedId.end() && !stopped;
-    // Efface l'id a abort si celui ci est présent dans la liste
-    if(abortedId.find(id) != abortedId.end()){
-        abortedId.erase(abortedId.find(id));
-    }
     monitorOut();
     return work;
 }

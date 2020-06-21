@@ -211,6 +211,7 @@ protected:
     std::map<int, Computation> computations; // permet d'avoir toutes les computations du système
     std::map<int, Result> results; // Permet d'avoir une structure contenant la liaison id->résultat
     std::set<int> abortedId; // Permet d'avoir la liste de tout les id que l'on a arrêté
+    std::set<int> computationInCalc; // Permet d'avoir la liste de tout les id que l'on a arrêté
     int minId; // Permet de savoir quelle est l'id attendu par getNextResult
 
 private:
