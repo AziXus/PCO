@@ -117,7 +117,9 @@ Request ComputationManager::getWork(ComputationType computationType) {
     computations.erase(itComputation);
     nbWaitingFull[cType]--;
     // Signal une thread qui attendait car buffer plein
-    signal(conditionsFull[cType]);
+    if (nbWaitingFull[cType] > 0) {
+        signal(conditionsFull[cType]);
+    }
     std::cout << "Going out " << cType << std::endl;
     monitorOut();
     return request;
