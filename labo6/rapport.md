@@ -75,7 +75,7 @@ Maintenant que ces deux méthodes sont implémentées, le GUI devrait être capa
 <img alt="Test 1" src="./img/T1.png" width="700" >
 
 On voit donc que notre première étape est fonctionnel.
-
+</br>
 ## Etape 2
 
 ### Conception
@@ -147,7 +147,7 @@ Pour corriger cela il fallait modifier la valeur de retour de la fonction contin
 
 Voici donc le résultat après la modification
 
-<img alt="Test 1" src="./images/Etape2_Test1.PNG" width="628" height="626" >
+<img alt="Test 1" src="./images/Etape2_Test1.PNG" width="428" height="426" >
 
 On voit alors que même si les computation B et C se terminent avant A le programme attend que A se termine avant d'afficher les requests.
 
@@ -155,7 +155,7 @@ On voit alors que même si les computation B et C se terminent avant A le progra
 
 Dans ce cas, nous avons augmenter le nombre de computation en variant les computations.
 
-<img alt="Test 1" src="./images/Etape2_Test2.PNG" width="777" height="650" >
+<img alt="Test 1" src="./images/Etape2_Test2.PNG" width="577" height="450" >
 
 Le test est correct car les id sont dans retournés l'ordre comme désiré
 
@@ -370,7 +370,7 @@ Pour valider cette étape nous avons utilisé les test proposés et des tests av
 
 Avec la GUI nous avons tout d'abord tester le fonctionnement de base qui est d'arrêter le programme au bout d'un certain temps alors que des computation sont en cours.
 
-<img alt="Test 1" src="./images/Etape4_Test1.PNG" width="719" height="743" >
+<img alt="Test 1" src="./images/Etape4_Test1.PNG" width="419" height="443" >
 
 Dans un premier temps on peut voir que le programme arrête bien les computations directement dès que le signal stop est envoyé. Le signal stop a été envoyé juste après la demande de computation 8.
 
@@ -389,6 +389,6 @@ GUI Enabled : 3
 
 Nous avons ensuite effectué un 2ème test pour vérifier que le programme n'accepte plus de computation après un arrêt.
 
-<img alt="Test 1" src="./images/Etape4_Test2.PNG" width="838" height="682" >
+<img alt="Test 1" src="./images/Etape4_Test2.PNG" width="638" height="482" >
 
 Le test est fonctionnel car on voit que les computations B, A, C sont grisés ce qui indique qu'il n'est plus possible d'effectuer une computation.
