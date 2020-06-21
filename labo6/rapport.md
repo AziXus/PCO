@@ -6,26 +6,34 @@ Auteurs: Müller Robin, Teixeira Carvalho Stéphane
 ### Conception
 La première étape du programme consiste a créé les fonctions requestComputation et getWork.
 
-La méthode `requestComputation` est potentiellement bloquante car il ne peut avoir que 10 computations par type. Nous utilisons donc un `std::vector<Condition> conditionsFull`. Ce vecteur permet de stocker une variable de condition par type de computation. On attends donc s'il y a 10 computations et la méthode `getWork` envoie un signal au bon type lorsque la computation est récupérée.
+La méthode `requestComputation` est potentiellement bloquante car il ne peut avoir que 10 computations par type. Nous utilisons donc un `std::vector<Condition> conditionsFull`. Ce vecteur permet de stocker une variable de condition par type de computation. On effectue donc un wait sur cette variable s'il y a 10 computations. La méthode `getWork` envoie un signal au bon type lorsqu'une computation est récupérée.
 
 Afin de stocker les différentes computations, nous avons décidé d'utiliser une `map` en prévision des futures fonctions. La déclaration est la suivante : `std::map<int, Computation> computations`.  
 L'index de la map contient l'id afin d'obtenir une computation en fontion de son id rapidement. Ceci sera très utile dans le cas de `abortComputation` .   
 L'utilisation d'une `std::map` permet également d'avoir un conteneur trié en fonction de l'id.
 
-Il nous faut encore un conteneur pour stocker les ids pour chaque type de computation et obtenir le prochain id. Nous avons utilisé le type suivant : `std::vector<std::queue<int>> computation`.
+Il nous faut encore un conteneur pour stocker les ids pour chaque type de computation et obtenir le prochain id. Nous avons utilisé le type suivant : `std::vector<std::set<int>> computation` .   
+Ce vecteur de set nous permet de stocker la computation avec l'id le plus petit, ainsi que de supprimer les computations en `log(n)`. Ceci nous sera utile dans les étapes futures.
 
 Code de `requestComputation` :
 ```C
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
-    while(computation[(int)c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE){
-        wait(conditionsFull[(int)c.computationType]);
+    // Stock le type de computation en int afin de simplifier le code
+    int cType = (int)c.computationType;
+    // Si le buffer du type de computation est plein, on wait
+    while(computation[cType].size() == MAX_TOLERATED_QUEUE_SIZE){
+        wait(conditionsFull[cType]);
     }
+    // Insertion de la computation
     int id = nextId++;
     computations.insert(std::make_pair(id, c));
-    computation[(int)c.computationType].push_back(id);
-    signal(conditionsEmpty[(int)c.computationType]);
+    computation[cType].insert(id);
+
+    // Envoie d'un signal si une thread attendait car buffer vide
+    signal(conditionsEmpty[cType]);
     monitorOut();
+    checkStop();
     return id;
 }
 ```
@@ -38,19 +46,35 @@ Code de `getWork` :
 Request ComputationManager::getWork(ComputationType computationType) {
     monitorIn();
     int id;
-    if(computation[(int)computationType].size() == 0){
-        wait(conditionsEmpty[(int)computationType]);
+    // Stock le type de computation en int afin de simplifier le code    
+    int cType = (int)computationType;
+    // Attente si le buffer du type est vide
+    if(computation[cType].size() == 0){
+        wait(conditionsEmpty[cType]);
     }
-    id = computation[(int)computationType].front();
-    computation[(int)computationType].pop_front();
+    // Récupère l'id et supprime le du conteneur
+    auto it = computation[cType].begin();
+    id = \*it;
+    computation[cType].erase(it);
     auto itComputation = computations.find(id);
     Request request = Request(itComputation->second, id);
     computations.erase(itComputation);
-    signal(conditionsFull[(int)computationType]);
+    // Signal une thread qui attendait car buffer plein
+    signal(conditionsFull[cType]);
     monitorOut();
     return request;
 }
 ```
+
+### Tests
+
+Pour valider cette étape nous avons utiliser les test proposées ainsi qu'un test avec le GUI.
+
+Maintenant que ces deux méthodes sont implémentées, le GUI devrait être capable de créer des computations de tout les types ainsi qu'obtenir leurs ids. Les compute engines quand à eux doivent être capable de récupérer des computations.
+
+<img alt="Test 1" src="./img/T1.png" width="700" >
+
+On voit donc que notre première étape est fonctionnel.
 
 ## Etape 2
 
