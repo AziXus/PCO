@@ -252,7 +252,7 @@ void ComputationManager::stop() {
 ```
 Nous avons décidé de ne pas mettre stopped en section critique car le seul endroit où la variable est modifiée est dans cette fonction.
 
-Nous envoyons ensuite des signaux à toutes les conditions que nous avons créer auparavant pour libérer tout les threads qui seraient bloquer pour ouvoir les arrêter.
+Nous envoyons ensuite des signaux à toutes les conditions que nous avons créer auparavant pour libérer tout les threads qui seraient bloquer pour pouvoir les arrêter.
 
 Pour ne pas avoir un code répétitif pour arrêter les threads correctement nous avons ensuite créer 2 fonctions :
 
@@ -279,6 +279,15 @@ Nous avons créer cette fonction pour éviter de devoir écrire ces 3 lignes de 
 Nous effectuons un checkStop avant le wait pour éviter que l'on ait une famine. Nous aurions ce cas si un thread arrive alors que le programme a déjà effectué la fonction stop et donc il resterait bloquer dans la fonction wait car plus aucun signal ne serait envoyé.
 
 Le deuxième `checkstop` permet, si le programme a été stoppé, de quitter le moniteur et d'arrêter l'exécution du thread en renvoyant une exception si un signal a été reçu.
+
+Nous avons également ajouter un checkStop en tout début de la fonction car si le programme est arrêté plus aucune computation de doit être acceptée.
+
+```cpp
+int ComputationManager::requestComputation(Computation c) {
+    monitorIn();
+    checkStop();
+...
+```
 
 Nous avons également dû modifier la condition de continueWork pour qu'après un stop celle-ci renvoie toujours false:
 ```cpp
@@ -317,4 +326,4 @@ Nous avons ensuite effectué un 2ème test pour vérifier que le programme n'acc
 
 ![](./images/Etape4_Test2.PNG)
 
-Le test est fonctionnel car on voit que les computations B, A, C sont grisés ce qui indique qu'il n'est plus possible d'effectuer une computation. 
+Le test est fonctionnel car on voit que les computations B, A, C sont grisés ce qui indique qu'il n'est plus possible d'effectuer une computation.
