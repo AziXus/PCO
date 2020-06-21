@@ -23,6 +23,7 @@ ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SI
 
 int ComputationManager::requestComputation(Computation c) {
     monitorIn();
+    checkStop();
     // Stock le type de computation en int afin de simplifier le code
     int cType = (int)c.computationType;
     // Si le nombre de compuation Max est égal au max autorisé pour le type donné une attente est effetuée
@@ -103,11 +104,16 @@ Result ComputationManager::getNextResult() {
     if(results.begin()->first != minId){
         waitCheckStop(resultsMinId);
     }
-    // Incrémentation de minId pour prendre le prochain Id
-    minId++;
     // Suppression du résultat dans la map
     Result result = results.begin()->second;
     results.erase(results.begin());
+    // Incrémentation de minId pour prendre le prochain Id
+    minId++;
+    while(abortedId.find(minId) != abortedId.end()){
+        abortedId.erase(abortedId.find(minId));
+        minId++;
+    }
+    std::cout << minId << std::endl;
     monitorOut();
     return result;
 }
