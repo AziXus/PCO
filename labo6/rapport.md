@@ -161,37 +161,43 @@ void ComputationManager::abortComputation(int id) {
     // Effacer de la liste des résultat
     auto itResult = results.find(id);
 
+    // Si l'id a été trouvé dans la liste des computations
     if(itComputation != computations.end()){
         int cType = (int)itComputation->second.computationType;
+        // Trouve l'id a supprimer du set
         auto it = std::find(computation[cType].begin(), computation[cType].end(), id);
-        // Remove computation
+        // Efface la computation trouvée de la map et du set
         computations.erase(itComputation);
         computation[cType].erase(it);
-        // Si une thread était en attente, on la libère
+        // Si un thread était en attente, on le libère
         if(nbWaitingFull[cType] > 0){
             nbWaitingFull[cType]--;
             signal(conditionsFull[cType]);
         }
+    // Si l'id a été trouvé dans la liste des résultats
     } else if(itResult != results.end()){
-        if(itResult->first == minId){ // Si l'on supprime le minId, on l'incrémente et l'on libère une thread
+        if(itResult->first == minId){ // Si on supprime le minId, on l'incrémente et on libère un thread
             minId++;
             signal(resultsMinId);
         }
         results.erase(itResult);
-    } else if(id < nextId || id >= minId){
-        // Evite d'ajouter de id invalide
+    }
+
+    // On ajoute uniquement ids valide
+    if(id < nextId || id >= minId){
         abortedId.insert(id);
     }
+
     monitorOut();
 }
 ```
-La fonction commence par rechercher l'id de la computation à annuler dans `computations` et dans `results`. Il y a ensuite trois possibilités :
+La fonction commence par rechercher l'id de la computation à annuler dans `computations` et dans `results`. Il y a ensuite deux possibilités :
 
 1. Si la computation est trouvée dans la liste de computations, cela signifie qu'aucun `computeengine` effectue actuellement des calculs. On supprime donc simplement l'id des structures et on libère une thread si le buffer était plein.
 
 2. Si 1 est faux et que l'id à annuler se trouve dans les résultats, on regarde tout d'abord si l'id est égal au `minId`. Dans ce cas là, on incrémente l'id et envoie un signal à la fonction `getNextResult` si une thread attendait. On supprime ensuite le résultat dans tout les cas.
 
-3. Si 1 et 2 sont faux et que l'id est valide, on ajoute l'id aux ids annulés. Il sera utilisé plus tard dans la fonction `continueWork`.
+On ajoute ensuite l'id dans la liste des ids abortés. Ceci permet à la fonction `continueWork` de retourner faux et à `getNextResult` d'ignorer les ids abortés.
 
 Fonction `continueWork` :
 ```C
@@ -209,13 +215,49 @@ bool ComputationManager::continueWork(int id) {
 ```
 La fonction `continueWork` retourne vrai si l'id n'a pas été annulé, faux sinon. On supprime également l'id du set s'il a été trouvé.
 
+
+Le code suivant a été ajouté à la fonction `getNextResult` :
+```C
+    // Supprime les id abortés et augmente minId
+    while (abortedId.size() > 0 && *abortedId.begin() == minId) {
+        abortedId.erase(abortedId.begin());
+        minId++;
+    }
+```
+Ceci permet d'ignorer les ids annulés.
+
 ### Tests
 
 Pour valider cette étape nous avons utiliser les test proposées et des tests avec la GUI expliqué ci-dessous :
 
 Avec la GUI, nous devrions être capable d'utiliser toutes les fonctionnalités à l'exception de l'arrêt.
 
-#### ade computations identique
+#### Annulation d'une computation en cours de calcul
+Afin de vérifier le fonctionnement de l'annulation, une computation A est lancée ainsi qu'une computation B. On annule ensuite la computation A.
+
+On ne devrait pas obtenir de résultat A mais un résultat pour B. La capture d'écran suivante valide le test:  
+<img alt="Test 3.1" src="./img/T3.1.png" width="500" >
+
+#### Annulation d'une computation en attente
+On lance le test de la façon suivante :
+1. Lancement d'une première computation B (id = 0)
+2. Lancement d'une seconde computation B (id = 1)
+3. Lancement d'une computation C (id = 2)
+4. Annulation de la seconde computation B
+
+On ne devrait pas obtenir de résultat avec l'id 1 mais des résultats pour les ids 0 et 2. La capture d'écran suivante valide le test:  
+<img alt="Test 3.2" src="./img/T3.2.png" width="500" >
+
+#### Annulation d'une computation terminée
+On lance le test de la façon suivante :
+1. Lancement d'une première computation A (id = 0)
+2. Lancement de trois computations C (id = 1, 2, 3)
+3. On attend que les trois computations C se terminent
+3. Annulation des computations avec les ids 1 et 2
+
+Une fois que A se termine, on doit obtenir le résultat des computations
+On ne devrait pas obtenir de résultat avec l'id 1 ou 2 mais des résultats pour les ids 0 et 3. La capture d'écran suivante valide le test:  
+<img alt="Test 3.3" src="./img/T3.3.png" width="500" >
 
 ## Etape 4
 
